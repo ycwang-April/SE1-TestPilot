@@ -1,0 +1,242 @@
+{
+  "project_path": "D:\\软件工程与项目实践\\hw1\\examples\\basic",
+  "requested_target": null,
+  "repository": {
+    "project_path": "D:\\软件工程与项目实践\\hw1\\examples\\basic",
+    "project_structure": [
+      "calculator.py"
+    ],
+    "source_files": [
+      "calculator.py"
+    ],
+    "existing_tests": [],
+    "dependency_info": {}
+  },
+  "project_index": {
+    "calculator.py": {
+      "path": "calculator.py",
+      "module": "calculator",
+      "docstring": "Small arithmetic contracts with explicit boundary and error behavior.",
+      "functions": [
+        {
+          "name": "divide",
+          "signature": "divide(a: float, b: float)",
+          "parameters": [
+            "a",
+            "b"
+          ],
+          "decorators": [],
+          "docstring": "Divide a by b; a zero divisor is invalid.",
+          "lineno": 4,
+          "branches": [
+            6
+          ],
+          "is_async": false
+        },
+        {
+          "name": "clamp",
+          "signature": "clamp(value: float, lower: float, upper: float)",
+          "parameters": [
+            "value",
+            "lower",
+            "upper"
+          ],
+          "decorators": [],
+          "docstring": "Clamp to the inclusive range; reject inverted bounds.",
+          "lineno": 11,
+          "branches": [
+            13,
+            15,
+            17
+          ],
+          "is_async": false
+        }
+      ],
+      "classes": [],
+      "imports": [],
+      "internal_dependencies": [],
+      "branches": [
+        6,
+        13,
+        15,
+        17
+      ]
+    }
+  },
+  "target_modules": [
+    "calculator.py"
+  ],
+  "test_plan": [
+    {
+      "target": "calculator.py",
+      "cases": [
+        {
+          "category": "normal",
+          "description": "Verify divide returns the correct quotient for nonzero operands, including a negative divisor.",
+          "target_symbol": "calculator.divide",
+          "input_strategy": "Parametrize over representative pairs: (10, 2), (7, -2), (-9, 3), (1, 4).",
+          "expected_behavior": "Returns a / b exactly (float division), no exception raised.",
+          "priority": 1,
+          "behavior_id": "divide-normal-quotient",
+          "setup": "Import divide from calculator.",
+          "additional_categories": []
+        },
+        {
+          "category": "boundary",
+          "description": "Zero divisor triggers the invalid-state guard rather than a ZeroDivisionError.",
+          "target_symbol": "calculator.divide",
+          "input_strategy": "Call divide(1, 0) and divide(0, 0).",
+          "expected_behavior": "Raises ValueError with message 'divisor must not be zero'.",
+          "priority": 3,
+          "behavior_id": "divide-zero-divisor",
+          "setup": "Import divide from calculator.",
+          "additional_categories": []
+        },
+        {
+          "category": "boundary",
+          "description": "Clamp with value strictly below lower returns lower.",
+          "target_symbol": "calculator.clamp",
+          "input_strategy": "Call clamp(-5, 0, 10).",
+          "expected_behavior": "Returns 0 (lower bound).",
+          "priority": 2,
+          "behavior_id": "clamp-below-lower",
+          "setup": "Import clamp from calculator.",
+          "additional_categories": []
+        },
+        {
+          "category": "boundary",
+          "description": "Clamp with value exactly equal to lower is inclusive and returns lower.",
+          "target_symbol": "calculator.clamp",
+          "input_strategy": "Call clamp(0, 0, 10).",
+          "expected_behavior": "Returns 0 (lower bound).",
+          "priority": 2,
+          "behavior_id": "clamp-equal-lower",
+          "setup": "Import clamp from calculator.",
+          "additional_categories": []
+        },
+        {
+          "category": "normal",
+          "description": "Clamp with value strictly inside the range returns the value unchanged.",
+          "target_symbol": "calculator.clamp",
+          "input_strategy": "Call clamp(5, 0, 10).",
+          "expected_behavior": "Returns 5.",
+          "priority": 1,
+          "behavior_id": "clamp-within-range",
+          "setup": "Import clamp from calculator.",
+          "additional_categories": []
+        },
+        {
+          "category": "boundary",
+          "description": "Clamp with value exactly equal to upper is inclusive and returns upper.",
+          "target_symbol": "calculator.clamp",
+          "input_strategy": "Call clamp(10, 0, 10).",
+          "expected_behavior": "Returns 10 (upper bound).",
+          "priority": 2,
+          "behavior_id": "clamp-equal-upper",
+          "setup": "Import clamp from calculator.",
+          "additional_categories": []
+        },
+        {
+          "category": "boundary",
+          "description": "Clamp with value strictly above upper returns upper.",
+          "target_symbol": "calculator.clamp",
+          "input_strategy": "Call clamp(15, 0, 10).",
+          "expected_behavior": "Returns 10 (upper bound).",
+          "priority": 2,
+          "behavior_id": "clamp-above-upper",
+          "setup": "Import clamp from calculator.",
+          "additional_categories": []
+        },
+        {
+          "category": "exception",
+          "description": "Inverted bounds (lower > upper) raise ValueError before any clamping occurs.",
+          "target_symbol": "calculator.clamp",
+          "input_strategy": "Call clamp(5, 10, 0).",
+          "expected_behavior": "Raises ValueError with message 'lower exceeds upper'.",
+          "priority": 3,
+          "behavior_id": "clamp-inverted-bounds",
+          "setup": "Import clamp from calculator.",
+          "additional_categories": []
+        },
+        {
+          "category": "branch",
+          "description": "When lower equals upper, the value must be clamped to that single point regardless of original value, and no exception is raised.",
+          "target_symbol": "calculator.clamp",
+          "input_strategy": "Call clamp(5, 3, 3) and clamp(-1, 3, 3).",
+          "expected_behavior": "Both calls return 3.",
+          "priority": 2,
+          "behavior_id": "clamp-degenerate-range",
+          "setup": "Import clamp from calculator.",
+          "additional_categories": []
+        },
+        {
+          "category": "interaction",
+          "description": "Verify type propagation: integer inputs to divide yield a float result, and clamp preserves numeric type semantics of the returned bound.",
+          "target_symbol": "calculator.divide",
+          "input_strategy": "Call divide(4, 2) and assert result == 2.0 and isinstance(result, float).",
+          "expected_behavior": "Returns 2.0 as a float.",
+          "priority": 1,
+          "behavior_id": "divide-int-to-float",
+          "setup": "Import divide from calculator.",
+          "additional_categories": []
+        }
+      ]
+    }
+  ],
+  "coverage": {
+    "line_coverage": 100.0,
+    "branch_coverage": 100.0,
+    "missing_lines": {
+      "calculator.py": []
+    },
+    "missing_branches": {
+      "calculator.py": []
+    }
+  },
+  "repair_count": 0,
+  "coverage_round": 0,
+  "status": "COMPLETED",
+  "history": [
+    {
+      "step": 1,
+      "action": "ANALYZE",
+      "observation": "ANALYZE: ANALYZING",
+      "repair_count": 0,
+      "coverage_round": 0
+    },
+    {
+      "step": 2,
+      "action": "PLAN",
+      "observation": "PLAN: PLANNING",
+      "repair_count": 0,
+      "coverage_round": 0
+    },
+    {
+      "step": 3,
+      "action": "GENERATE",
+      "observation": "GENERATE: GENERATING",
+      "repair_count": 0,
+      "coverage_round": 0
+    },
+    {
+      "step": 4,
+      "action": "EXECUTE",
+      "observation": "EXECUTE: EXECUTING; rc=0, passed=15, failed=0, errors=0; line=100.00, branch=100.00",
+      "repair_count": 0,
+      "coverage_round": 0
+    },
+    {
+      "step": 5,
+      "action": "FINISH",
+      "observation": "FINISH: COMPLETED",
+      "repair_count": 0,
+      "coverage_round": 0
+    }
+  ],
+  "current_action": "FINISH",
+  "error": null,
+  "failure_stage": null,
+  "warnings": [],
+  "run_dir": "D:\\软件工程与项目实践\\hw1\\runs\\basic-deepseek-docker-20261005-164524-7f17b6d4",
+  "demo": false
+}

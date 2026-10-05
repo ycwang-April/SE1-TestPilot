@@ -1,0 +1,21 @@
+llm:
+  provider: deepseek
+  model: deepseek-flash
+  max_retries: 2
+  timeout_seconds: 60
+  max_tokens: 50000
+execution:
+  preferred_runner: docker
+  allow_local_fallback: true
+  timeout_seconds: 30
+  install_dependencies: false
+  install_timeout_seconds: 180
+  docker_image: testpilot-runner:latest
+agent:
+  max_repair_rounds: 2
+  context_max_chars: 100000
+coverage:
+  enabled: true
+  line_threshold: 80
+  branch_threshold: 70
+  max_improvement_rounds: 2

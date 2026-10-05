@@ -1,0 +1,119 @@
+[
+  {
+    "task": "PLAN",
+    "attempt": 1,
+    "model": "deepseek-flash",
+    "max_tokens": 50000,
+    "context_chars": 7526,
+    "status": "completed",
+    "response_chars": 7184
+  },
+  {
+    "task": "PLAN",
+    "attempt": 1,
+    "model": "deepseek-flash",
+    "max_tokens": 50000,
+    "context_chars": 9135,
+    "status": "completed",
+    "response_chars": 3182
+  },
+  {
+    "task": "PLAN",
+    "attempt": 1,
+    "model": "deepseek-flash",
+    "max_tokens": 50000,
+    "context_chars": 18718,
+    "status": "completed",
+    "response_chars": 8743
+  },
+  {
+    "task": "PLAN",
+    "attempt": 1,
+    "model": "deepseek-flash",
+    "max_tokens": 50000,
+    "context_chars": 24238,
+    "status": "completed",
+    "response_chars": 7577
+  },
+  {
+    "task": "PLAN",
+    "attempt": 1,
+    "model": "deepseek-flash",
+    "max_tokens": 50000,
+    "context_chars": 42957,
+    "status": "completed",
+    "response_chars": 7635
+  },
+  {
+    "task": "PLAN",
+    "attempt": 1,
+    "model": "deepseek-flash",
+    "max_tokens": 50000,
+    "context_chars": 49159,
+    "status": "completed",
+    "response_chars": 10587
+  },
+  {
+    "task": "GENERATE",
+    "attempt": 1,
+    "model": "deepseek-flash",
+    "max_tokens": 50000,
+    "context_chars": 53692,
+    "status": "completed",
+    "response_chars": 5257
+  },
+  {
+    "task": "GENERATE",
+    "attempt": 1,
+    "model": "deepseek-flash",
+    "max_tokens": 50000,
+    "context_chars": 53255,
+    "status": "completed",
+    "response_chars": 2082
+  },
+  {
+    "task": "GENERATE",
+    "attempt": 1,
+    "model": "deepseek-flash",
+    "max_tokens": 50000,
+    "context_chars": 61421,
+    "status": "completed",
+    "response_chars": 4725
+  },
+  {
+    "task": "GENERATE",
+    "attempt": 1,
+    "model": "deepseek-flash",
+    "max_tokens": 50000,
+    "context_chars": 62641,
+    "status": "completed",
+    "response_chars": 4298
+  },
+  {
+    "task": "GENERATE",
+    "attempt": 1,
+    "model": "deepseek-flash",
+    "max_tokens": 50000,
+    "context_chars": 77854,
+    "status": "completed",
+    "response_chars": 5447
+  },
+  {
+    "task": "GENERATE",
+    "attempt": 1,
+    "model": "deepseek-flash",
+    "max_tokens": 50000,
+    "context_chars": 81551,
+    "status": "completed",
+    "response_chars": 7021
+  },
+  {
+    "task": "REPAIR_PATCH",
+    "attempt": 1,
+    "model": "deepseek-flash",
+    "max_tokens": 50000,
+    "context_chars": 23833,
+    "status": "completed",
+    "response_chars": 567
+  }
+]

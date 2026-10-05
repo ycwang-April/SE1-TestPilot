@@ -1,0 +1,37 @@
+[
+  {
+    "step": 1,
+    "action": "ANALYZE",
+    "observation": "ANALYZE: ANALYZING",
+    "repair_count": 0,
+    "coverage_round": 0
+  },
+  {
+    "step": 2,
+    "action": "PLAN",
+    "observation": "PLAN: PLANNING",
+    "repair_count": 0,
+    "coverage_round": 0
+  },
+  {
+    "step": 3,
+    "action": "GENERATE",
+    "observation": "GENERATE: GENERATING",
+    "repair_count": 0,
+    "coverage_round": 0
+  },
+  {
+    "step": 4,
+    "action": "EXECUTE",
+    "observation": "EXECUTE: EXECUTING; rc=0, passed=15, failed=0, errors=0; line=100.00, branch=100.00",
+    "repair_count": 0,
+    "coverage_round": 0
+  },
+  {
+    "step": 5,
+    "action": "FINISH",
+    "observation": "FINISH: COMPLETED",
+    "repair_count": 0,
+    "coverage_round": 0
+  }
+]

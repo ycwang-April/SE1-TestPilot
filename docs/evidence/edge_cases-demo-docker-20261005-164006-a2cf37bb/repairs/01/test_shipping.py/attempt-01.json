@@ -1,0 +1,11 @@
+{
+  "requested_file": "test_shipping.py",
+  "files": [
+    {
+      "path": "test_shipping.py",
+      "content": "from shipping import shipping_fee\n\ndef test_regular_small():\n    assert shipping_fee(1) == 5\n"
+    }
+  ],
+  "accepted": true,
+  "validation_error": null
+}

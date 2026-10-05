@@ -1,0 +1,11 @@
+{
+  "requested_file": "test_errors.py",
+  "files": [
+    {
+      "path": "test_errors.py",
+      "content": "\"\"\"Behavioral tests for the errors.py exception hierarchy.\"\"\"\n\nimport pytest\n\nfrom errors import (\n    InvalidCouponError,\n    InvalidOrderError,\n    OrderError,\n    OutOfStockError,\n)\n\n\ndef test_ordererror_is_valueerror_subclass_carrying_message():\n    assert issubclass(OrderError, ValueError)\n    err = OrderError(\"boom\")\n    assert isinstance(err, ValueError)\n    assert str(err) == \"boom\"\n\n\ndef test_invalidordererror_instance_is_domain_and_valueerror():\n    err = InvalidOrderError(\"bad\")\n    assert isinstance(err, OrderError)\n    assert isinstance(err, ValueError)\n    assert str(err) == \"bad\"\n\n\ndef test_outofstockerror_is_domain_error_but_not_invalidorder():\n    err = OutOfStockError(\"no stock\")\n    assert isinstance(err, OrderError)\n    assert isinstance(err, ValueError)\n    assert not isinstance(err, InvalidOrderError)\n\n\ndef test_invalidcouponerror_is_domain_error_disjoint_from_siblings():\n    err = InvalidCouponError(\"bad coupon\")\n    assert isinstance(err, OrderError)\n    assert isinstance(err, ValueError)\n    assert not isinstance(err, InvalidOrderError)\n    assert not isinstance(err, OutOfStockError)\n\n\ndef test_domain_error_is_catchable_as_valueerror():\n    caught = None\n    try:\n        raise InvalidCouponError(\"x\")\n    except ValueError as exc:\n        caught = exc\n    assert isinstance(caught, InvalidCouponError)\n    assert str(caught) == \"x\"\n\n\n@pytest.mark.parametrize(\n    \"exc_type,expect_caught\",\n    [\n        (InvalidOrderError, True),\n        (OutOfStockError, False),\n        (InvalidCouponError, False),\n    ],\n    ids=[\"invalid-order\", \"out-of-stock\", \"invalid-coupon\"],\n)\ndef test_catching_invalidordererror_does_not_catch_siblings(exc_type, expect_caught):\n    caught = None\n    try:\n        raise exc_type(\"x\")\n    except InvalidOrderError as exc:\n        caught = exc\n    except OrderError:\n        pass\n    if expect_caught:\n        assert isinstance(caught, InvalidOrderError)\n    else:\n        assert caught is None\n"
+    }
+  ],
+  "accepted": true,
+  "validation_error": null
+}

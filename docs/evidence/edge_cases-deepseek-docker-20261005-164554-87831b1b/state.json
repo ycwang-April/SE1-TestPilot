@@ -1,0 +1,216 @@
+{
+  "project_path": "D:\\软件工程与项目实践\\hw1\\examples\\edge_cases",
+  "requested_target": null,
+  "repository": {
+    "project_path": "D:\\软件工程与项目实践\\hw1\\examples\\edge_cases",
+    "project_structure": [
+      "shipping.py"
+    ],
+    "source_files": [
+      "shipping.py"
+    ],
+    "existing_tests": [],
+    "dependency_info": {}
+  },
+  "project_index": {
+    "shipping.py": {
+      "path": "shipping.py",
+      "module": "shipping",
+      "docstring": null,
+      "functions": [
+        {
+          "name": "shipping_fee",
+          "signature": "shipping_fee(weight: float, express: bool=False)",
+          "parameters": [
+            "weight",
+            "express"
+          ],
+          "decorators": [],
+          "docstring": "Regular shipping costs 5 up to 1kg, 10 up to 5kg, else 20; express adds 8.",
+          "lineno": 1,
+          "branches": [
+            3,
+            5,
+            11,
+            7
+          ],
+          "is_async": false
+        }
+      ],
+      "classes": [],
+      "imports": [],
+      "internal_dependencies": [],
+      "branches": [
+        3,
+        5,
+        11,
+        7
+      ]
+    }
+  },
+  "target_modules": [
+    "shipping.py"
+  ],
+  "test_plan": [
+    {
+      "target": "shipping.py",
+      "cases": [
+        {
+          "category": "normal",
+          "description": "Regular shipping within the lowest weight tier (weight in (0, 1]) charges the base fee 5.",
+          "target_symbol": "shipping_fee",
+          "input_strategy": "Parametrize positive weights at/under 1kg, e.g. [0.1, 0.5, 1.0], express=False",
+          "expected_behavior": "Returns 5 for every weight in (0, 1].",
+          "priority": 1,
+          "behavior_id": "regular_tier_low",
+          "setup": "No setup; call shipping_fee(weight, False).",
+          "additional_categories": []
+        },
+        {
+          "category": "boundary",
+          "description": "Weight of exactly 1kg is the inclusive upper boundary of the first tier and must yield 5, not 10.",
+          "target_symbol": "shipping_fee",
+          "input_strategy": "Single call shipping_fee(1, False)",
+          "expected_behavior": "Returns 5, confirming the first tier includes its 1kg boundary.",
+          "priority": 2,
+          "behavior_id": "regular_tier_low",
+          "setup": "No setup; call shipping_fee(1, False).",
+          "additional_categories": []
+        },
+        {
+          "category": "normal",
+          "description": "Regular shipping within the middle tier (weight in (1, 5]) charges 10.",
+          "target_symbol": "shipping_fee",
+          "input_strategy": "Parametrize weights in (1, 5], e.g. [1.001, 3.0, 5.0], express=False",
+          "expected_behavior": "Returns 10 for every weight strictly above 1 up to and including 5.",
+          "priority": 1,
+          "behavior_id": "regular_tier_mid",
+          "setup": "No setup; call shipping_fee(weight, False).",
+          "additional_categories": []
+        },
+        {
+          "category": "boundary",
+          "description": "Weight exactly 5kg is the inclusive upper boundary of the middle tier and must yield 10, not 20.",
+          "target_symbol": "shipping_fee",
+          "input_strategy": "Single call shipping_fee(5, False)",
+          "expected_behavior": "Returns 10, confirming the middle tier includes its 5kg boundary.",
+          "priority": 2,
+          "behavior_id": "regular_tier_mid",
+          "setup": "No setup; call shipping_fee(5, False).",
+          "additional_categories": []
+        },
+        {
+          "category": "normal",
+          "description": "Regular shipping above 5kg falls into the highest tier and charges 20.",
+          "target_symbol": "shipping_fee",
+          "input_strategy": "Parametrize weights above 5, e.g. [5.001, 10.0, 100.0], express=False",
+          "expected_behavior": "Returns 20 for every weight strictly greater than 5.",
+          "priority": 1,
+          "behavior_id": "regular_tier_high",
+          "setup": "No setup; call shipping_fee(weight, False).",
+          "additional_categories": []
+        },
+        {
+          "category": "normal",
+          "description": "Express surcharge of 8 is added to the base fee.",
+          "target_symbol": "shipping_fee",
+          "input_strategy": "Parametrize one representative weight per tier with express=True: [(0.5, 5), (3.0, 10), (7.0, 20)]",
+          "expected_behavior": "Returns base_fee + 8 for each tier (13, 18, 28).",
+          "priority": 1,
+          "behavior_id": "express_surcharge",
+          "setup": "No setup; call shipping_fee(weight, True).",
+          "additional_categories": []
+        },
+        {
+          "category": "invalid",
+          "description": "Non-positive weights are rejected before any fee tier is computed.",
+          "target_symbol": "shipping_fee",
+          "input_strategy": "Parametrize zeros and negatives, e.g. [0, -0.001, -1, -100], with express both False and True",
+          "expected_behavior": "Raises ValueError with message 'weight must be positive'; no fee is returned.",
+          "priority": 1,
+          "behavior_id": "invalid_weight",
+          "setup": "No setup; call shipping_fee(weight, express).",
+          "additional_categories": []
+        },
+        {
+          "category": "boundary",
+          "description": "Zero weight is the exact threshold of the invalid guard and must raise rather than entering the first tier.",
+          "target_symbol": "shipping_fee",
+          "input_strategy": "Single call shipping_fee(0) and shipping_fee(-0.0)",
+          "expected_behavior": "Raises ValueError, confirming the guard uses weight <= 0.",
+          "priority": 2,
+          "behavior_id": "invalid_weight",
+          "setup": "No setup; call shipping_fee with weight 0 and -0.0.",
+          "additional_categories": []
+        },
+        {
+          "category": "branch",
+          "description": "The express argument defaults to False so the surcharge is not applied when omitted.",
+          "target_symbol": "shipping_fee",
+          "input_strategy": "Call shipping_fee(0.5) with no express argument and compare to shipping_fee(0.5, False)",
+          "expected_behavior": "Both calls return 5, confirming the default does not include the express surcharge.",
+          "priority": 2,
+          "behavior_id": "express_surcharge",
+          "setup": "No setup; rely on the default parameter value.",
+          "additional_categories": []
+        }
+      ]
+    }
+  ],
+  "coverage": {
+    "line_coverage": 100.0,
+    "branch_coverage": 100.0,
+    "missing_lines": {
+      "shipping.py": []
+    },
+    "missing_branches": {
+      "shipping.py": []
+    }
+  },
+  "repair_count": 0,
+  "coverage_round": 0,
+  "status": "COMPLETED",
+  "history": [
+    {
+      "step": 1,
+      "action": "ANALYZE",
+      "observation": "ANALYZE: ANALYZING",
+      "repair_count": 0,
+      "coverage_round": 0
+    },
+    {
+      "step": 2,
+      "action": "PLAN",
+      "observation": "PLAN: PLANNING",
+      "repair_count": 0,
+      "coverage_round": 0
+    },
+    {
+      "step": 3,
+      "action": "GENERATE",
+      "observation": "GENERATE: GENERATING",
+      "repair_count": 0,
+      "coverage_round": 0
+    },
+    {
+      "step": 4,
+      "action": "EXECUTE",
+      "observation": "EXECUTE: EXECUTING; rc=0, passed=23, failed=0, errors=0; line=100.00, branch=100.00",
+      "repair_count": 0,
+      "coverage_round": 0
+    },
+    {
+      "step": 5,
+      "action": "FINISH",
+      "observation": "FINISH: COMPLETED",
+      "repair_count": 0,
+      "coverage_round": 0
+    }
+  ],
+  "current_action": "FINISH",
+  "error": null,
+  "failure_stage": null,
+  "warnings": [],
+  "run_dir": "D:\\软件工程与项目实践\\hw1\\runs\\edge_cases-deepseek-docker-20261005-164554-87831b1b",
+  "demo": false
+}

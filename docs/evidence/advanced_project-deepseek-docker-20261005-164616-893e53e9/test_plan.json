@@ -1,0 +1,988 @@
+[
+  {
+    "target": "coupon.py",
+    "cases": [
+      {
+        "category": "normal",
+        "description": "Fixed coupon returns its face value on a subtotal that exactly meets the inclusive minimum.",
+        "target_symbol": "Coupon.discount",
+        "input_strategy": "Coupon(kind=CouponType.FIXED, value=Decimal('5'), minimum=Decimal('20'), expires_at=aware future datetime); call discount(subtotal=Decimal('20'), now=head of expiry minus one hour, also aware).",
+        "expected_behavior": "Returns Decimal('5'); minimum spend is inclusive so equality passes, and now is strictly before expires_at.",
+        "priority": 1,
+        "behavior_id": "fixed-at-minimum",
+        "setup": "Construct aware UTC datetimes with datetime timezone.utc: now before expires_at.",
+        "additional_categories": []
+      },
+      {
+        "category": "normal",
+        "description": "Percent coupon returns subtotal multiplied by the fractional rate.",
+        "target_symbol": "Coupon.discount",
+        "input_strategy": "Coupon(kind=CouponType.PERCENT, value=Decimal('0.25'), minimum=Decimal('0'), expires_at=aware future); discount(subtotal=Decimal('80'), now=aware now).",
+        "expected_behavior": "Returns Decimal('20') (0.25 * 80).",
+        "priority": 1,
+        "behavior_id": "percent-normal",
+        "setup": "Aware UTC timestamps; value it is a fraction in (0, 1].",
+        "additional_categories": []
+      },
+      {
+        "category": "boundary",
+        "description": "Percent value of exactly 1.0 is accepted and yields the full subtotal.",
+        "target_symbol": "Coupon.discount",
+        "input_strategy": "Coupon(kind=CouponType.PERCENT, value=Decimal('1'), minimum=Decimal('0'), expires_at=aware future); discount(subtotal=Decimal('50'), now=aware now).",
+        "expected_behavior": "Returns Decimal('50'); the >1 rejection boundary is exclusive.",
+        "priority": 2,
+        "behavior_id": "percent-rate-one",
+        "setup": "Aware UTC timestamps.",
+        "additional_categories": []
+      },
+      {
+        "category": "boundary",
+        "description": "Percent value just above 1 is rejected.",
+        "target_symbol": "Coupon.discount",
+        "input_strategy": "Coupon(kind=CouponType.PERCENT, value=Decimal('1.01'), minimum=Decimal('0'), expires_at=aware future); discount(subtotal=Decimal('50'), now=aware now).",
+        "expected_behavior": "Raises InvalidCouponError('percentage exceeds one').",
+        "priority": 2,
+        "behavior_id": "percent-too-high",
+        "setup": "Aware UTC timestamps.",
+        "additional_categories": []
+      },
+      {
+        "category": "boundary",
+        "description": "Expiry is exclusive: now strictly before expires_at succeeds.",
+        "target_symbol": "Coupon.discount",
+        "input_strategy": "expires_at = T, now = T - one second; valid fixed coupon meeting minimum; discount(Decimal('20'), now).",
+        "expected_behavior": "Returns the fixed value without error.",
+        "priority": 1,
+        "behavior_id": "expiry-before",
+        "setup": "Aware UTC timestamps derived so now < expires_at by one second.",
+        "additional_categories": []
+      },
+      {
+        "category": "boundary",
+        "description": "Expiry boundary equality: now == expires_at is expired because comparison is now >= expires_at.",
+        "target_symbol": "Coupon.discount",
+        "input_strategy": "expires_at = T, now = T exactly; otherwise valid coupon.",
+        "expected_behavior": "Raises InvalidCouponError('coupon expired').",
+        "priority": 1,
+        "behavior_id": "expiry-at-equality",
+        "setup": "Aware UTC timestamps with now set equal to expires_at.",
+        "additional_categories": []
+      },
+      {
+        "category": "boundary",
+        "description": "Subtotal one unit below an inclusive minimum is rejected.",
+        "target_symbol": "Coupon.discount",
+        "input_strategy": "minimum=Decimal('20'), subtotal=Decimal('19.99'); valid fixed coupon with now strictly before expires_at.",
+        "expected_behavior": "Raises InvalidCouponError('minimum spend not met').",
+        "priority": 1,
+        "behavior_id": "min-spend-below",
+        "setup": "Aware UTC timestamps.",
+        "additional_categories": []
+      },
+      {
+        "category": "boundary",
+        "description": "Fixed discount value may exceed the subtotal; coupon returns full value and does not floor.",
+        "target_symbol": "Coupon.discount",
+        "input_strategy": "Coupon(FIXED, value=Decimal('30'), minimum=Decimal('0')); discount(subtotal=Decimal('10'), now before expiry).",
+        "expected_behavior": "Returns Decimal('30') (floating at zero is pricing's job, not the coupon's).",
+        "priority": 2,
+        "behavior_id": "fixed-exceeds-subtotal",
+        "setup": "Aware UTC timestamps.",
+        "additional_categories": []
+      },
+      {
+        "category": "exception",
+        "description": "Unknown coupon kind (not a CouponType member) is rejected.",
+        "target_symbol": "Coupon.discount",
+        "input_strategy": "Coupon(kind='fixed', value=Decimal('5'), minimum=Decimal('0'), expires_at=aware future); discount(Decimal('20'), aware now).",
+        "expected_behavior": "Raises InvalidCouponError('unknown coupon type').",
+        "priority": 1,
+        "behavior_id": "kind-not-enum",
+        "setup": "Bypass type guarantees by passing a raw string kind to the dataclass.",
+        "additional_categories": []
+      },
+      {
+        "category": "invalid",
+        "description": "Coupon values that are non-Decimal, non-finite, or non-positive are all rejected by the same guard.",
+        "target_symbol": "Coupon.discount",
+        "input_strategy": "parametrize over invalid value inputs: float 0.5, Decimal('NaN'), Decimal('Infinity'), Decimal('0'), Decimal('-1'); kind=FIXED, minimum=Decimal('0'), aware timestamps.",
+        "expected_behavior": "Each raises InvalidCouponError('invalid coupon amount').",
+        "priority": 1,
+        "behavior_id": "value-invalid",
+        "setup": "Valid aware timestamps so the amount guard is reached first.",
+        "additional_categories": []
+      },
+      {
+        "category": "invalid",
+        "description": "Coupon minimums that are non-Decimal, non-finite, or negative are rejected.",
+        "target_symbol": "Coupon.discount",
+        "input_strategy": "parametrize over minimum inputs: int 0, Decimal('NaN'), Decimal('-0.01'); kind=FIXED, value=Decimal('5'), aware timestamps.",
+        "expected_behavior": "Each raises InvalidCouponError('invalid coupon amount').",
+        "priority": 1,
+        "behavior_id": "minimum-invalid",
+        "setup": "Valid kind and value so the minimum guard branch is exercised.",
+        "additional_categories": []
+      },
+      {
+        "category": "exception",
+        "description": "Naive expires_at or naive now timestamps are rejected.",
+        "target_symbol": "Coupon.discount",
+        "input_strategy": "parametrize over (expires_at, now) pairs: (naive future, aware now) and (aware future, naive now); kind=FIXED value=Decimal('5') minimum=Decimal('0').",
+        "expected_behavior": "Each raises InvalidCouponError('timezone-aware timestamps required').",
+        "priority": 1,
+        "behavior_id": "timezone-awareness",
+        "setup": "datetime.now() without tzinfo for the naive side.",
+        "additional_categories": []
+      },
+      {
+        "category": "exception",
+        "description": "Non-datetime expires_at value is rejected by the timestamp guard.",
+        "target_symbol": "Coupon.discount",
+        "input_strategy": "expires_at='2030-01-01'; aware now; valid fixed coupon.",
+        "expected_behavior": "Raises InvalidCouponError('timezone-aware timestamps required').",
+        "priority": 2,
+        "behavior_id": "expires-not-datetime",
+        "setup": "Raw string expiry to exercise the isinstance branch.",
+        "additional_categories": []
+      },
+      {
+        "category": "branch",
+        "description": "After the expiry check passes, the minimum-spend check is evaluated (branch ordering).",
+        "target_symbol": "Coupon.discount",
+        "input_strategy": "Valid coupon meeting minimum with now strictly before expires_at; assert success to confirm the min-spend branch is skipped as satisfied.",
+        "expected_behavior": "No InvalidCouponError and the correct fixed/percent value is returned.",
+        "priority": 3,
+        "behavior_id": "branch-ordering",
+        "setup": "Aware UTC timestamps; used to distinguish the min-spend-satisfied path from the expired path.",
+        "additional_categories": []
+      }
+    ]
+  },
+  {
+    "target": "errors.py",
+    "cases": [
+      {
+        "category": "normal",
+        "description": "OrderError is the base class for all domain errors and is itself a ValueError subclass.",
+        "target_symbol": "errors.OrderError",
+        "input_strategy": "Instantiate OrderError('boom') and inspect its class hierarchy.",
+        "expected_behavior": "issubclass(OrderError, ValueError) is True and the instance carries the message string.",
+        "priority": 1,
+        "behavior_id": "ordererror-base-valueerror",
+        "setup": "Plain import from errors.",
+        "additional_categories": []
+      },
+      {
+        "category": "normal",
+        "description": "InvalidOrderError inherits from OrderError, making it catchable as both a ValueError and a domain error.",
+        "target_symbol": "errors.InvalidOrderError",
+        "input_strategy": "Instantiate InvalidOrderError('bad') and check isinstance against OrderError and ValueError.",
+        "expected_behavior": "The instance is an OrderError and a ValueError and its str() is 'bad'.",
+        "priority": 1,
+        "behavior_id": "invalidordererror-inherits",
+        "setup": "Plain import from errors.",
+        "additional_categories": []
+      },
+      {
+        "category": "normal",
+        "description": "OutOfStockError inherits from OrderError and is distinguishable from the generic InvalidOrderError.",
+        "target_symbol": "errors.OutOfStockError",
+        "input_strategy": "Instantiate OutOfStockError('no stock') and compare its class to InvalidOrderError.",
+        "expected_behavior": "It is an OrderError but not an instance of InvalidOrderError.",
+        "priority": 1,
+        "behavior_id": "outofstockerror-inherits",
+        "setup": "Plain import from errors.",
+        "additional_categories": []
+      },
+      {
+        "category": "normal",
+        "description": "InvalidCouponError inherits from OrderError and is distinguishable from the other sibling errors.",
+        "target_symbol": "errors.InvalidCouponError",
+        "input_strategy": "Instantiate InvalidCouponError('bad coupon') and check its ancestry.",
+        "expected_behavior": "It is an OrderError but not an instance of InvalidOrderError or OutOfStockError.",
+        "priority": 1,
+        "behavior_id": "invalidcouponerror-inherits",
+        "setup": "Plain import from errors.",
+        "additional_categories": []
+      },
+      {
+        "category": "exception",
+        "description": "Because OrderError descends from ValueError, it is catchable with `except ValueError`, so callers can handle domain failures generically.",
+        "target_symbol": "errors.OrderError",
+        "input_strategy": "Raise InvalidCouponError inside a try block and catch ValueError.",
+        "expected_behavior": "The except ValueError branch is taken and the raised instance is the InvalidCouponError.",
+        "priority": 1,
+        "behavior_id": "valueerror-catchability",
+        "setup": "Use try/except ValueError around raise InvalidCouponError('x').",
+        "additional_categories": [
+          "interaction"
+        ]
+      },
+      {
+        "category": "branch",
+        "description": "Sibling errors are disjoint: catching one specific subclass does not accidentally catch another.",
+        "target_symbol": "errors.InvalidOrderError",
+        "input_strategy": "parametrize over raisers: InvalidOrderError, OutOfStockError, InvalidCouponError; catch only InvalidOrderError for each.",
+        "expected_behavior": "Only InvalidOrderError is caught by `except InvalidOrderError`; the other two propagate uncaught.",
+        "priority": 2,
+        "behavior_id": "sibling-disjointness",
+        "setup": "Each parametrized case raises its own exception and asserts the catch outcome.",
+        "additional_categories": [
+          "boundary"
+        ]
+      }
+    ]
+  },
+  {
+    "target": "inventory.py",
+    "cases": [
+      {
+        "category": "normal",
+        "description": "Constructor builds a complete stock map that zero-fills SKUs absent from the supplied stock dict and exposes products by SKU.",
+        "target_symbol": "Inventory.__init__",
+        "input_strategy": "products=[Product('A', Decimal('1')), Product('B', Decimal('2'))], stock={'A': 5}; construct and read snapshot() plus product('B').",
+        "expected_behavior": "snapshot() == {'A': 5, 'B': 0} and product('B') returns the B Product instance; no exception raised.",
+        "priority": 1,
+        "behavior_id": "init-zerofill",
+        "setup": "Frozen dataclass Product instances with valid SKUs and nonnegative Decimal prices.",
+        "additional_categories": []
+      },
+      {
+        "category": "exception",
+        "description": "Duplicate SKUs in the product list are rejected before any state is built.",
+        "target_symbol": "Inventory.__init__",
+        "input_strategy": "products containing two Products with the same sku 'A'; stock={}.",
+        "expected_behavior": "Raises InvalidOrderError('duplicate product SKU').",
+        "priority": 1,
+        "behavior_id": "init-duplicate-sku",
+        "setup": "Two distinct Product objects sharing sku 'A'.",
+        "additional_categories": []
+      },
+      {
+        "category": "exception",
+        "description": "A stock dict referencing an SKU that has no product is rejected.",
+        "target_symbol": "Inventory.__init__",
+        "input_strategy": "products=[Product('A', Decimal('1'))], stock={'A': 1, 'Z': 3}.",
+        "expected_behavior": "Raises InvalidOrderError('stock refers to unknown SKU').",
+        "priority": 1,
+        "behavior_id": "init-unknown-stock-sku",
+        "setup": "Stock key 'Z' deliberately absent from products.",
+        "additional_categories": []
+      },
+      {
+        "category": "invalid",
+        "description": "Stock amounts that are not nonnegative ints (bool, float, str, negative) all hit the same validation guard.",
+        "target_symbol": "Inventory.__init__",
+        "input_strategy": "parametrize over amount values for stock={'A': amount}: True, 0.0, '3', -1 (integer zero is a valid boundary excluded here).",
+        "expected_behavior": "Each raises InvalidOrderError('stock must be a nonnegative integer').",
+        "priority": 1,
+        "behavior_id": "init-invalid-stock-amount",
+        "setup": "Single Product('A', Decimal('1')); note type(True) is bool so it must fail the `type(amount) is not int` check.",
+        "additional_categories": [
+          "exception"
+        ]
+      },
+      {
+        "category": "boundary",
+        "description": "An explicit stock amount of zero is a valid nonnegative integer and is accepted.",
+        "target_symbol": "Inventory.__init__",
+        "input_strategy": "products=[Product('A', Decimal('1'))], stock={'A': 0}.",
+        "expected_behavior": "Constructs successfully and snapshot() == {'A': 0}.",
+        "priority": 2,
+        "behavior_id": "init-zero-stock-amount",
+        "setup": "Boundary side just below the rejection of negatives.",
+        "additional_categories": []
+      },
+      {
+        "category": "normal",
+        "description": "product() resolves a known SKU to its Product instance.",
+        "target_symbol": "Inventory.product",
+        "input_strategy": "products=[Product('A', Decimal('1'))], stock={'A': 2}; call product('A').",
+        "expected_behavior": "Returns the exact Product instance constructed for 'A' with sku 'A' and the given price.",
+        "priority": 1,
+        "behavior_id": "product-known",
+        "setup": "Single product inventory.",
+        "additional_categories": []
+      },
+      {
+        "category": "exception",
+        "description": "Unknown SKU is a domain error, not OutOfStockError.",
+        "target_symbol": "Inventory.product",
+        "input_strategy": "call product('NOPE') on an inventory containing only SKU 'A'.",
+        "expected_behavior": "Raises InvalidOrderError whose message contains 'unknown SKU' and is not an OutOfStockError.",
+        "priority": 1,
+        "behavior_id": "product-unknown",
+        "setup": "Single product inventory; 'NOPE' was never registered.",
+        "additional_categories": []
+      },
+      {
+        "category": "normal",
+        "description": "snapshot() returns an independent copy so mutating the result cannot change inventory state.",
+        "target_symbol": "Inventory.snapshot",
+        "input_strategy": "stock={'A': 5}; take snap = snapshot(), then mutate snap['A'] and re-read snapshot().",
+        "expected_behavior": "The second snapshot() still reports 5 and snap is not the internal dict (snap is not snapshot().) i.e. mutations do not leak.",
+        "priority": 1,
+        "behavior_id": "snapshot-copy-isolation",
+        "setup": "Inventory with a single stocked product.",
+        "additional_categories": [
+          "interaction"
+        ]
+      },
+      {
+        "category": "normal",
+        "description": "reserve() commits the deduction for a single valid line within stock.",
+        "target_symbol": "Inventory.reserve",
+        "input_strategy": "stock={'A': 5}; reserve([OrderLine('A', 2)]); then snapshot().",
+        "expected_behavior": "snapshot()['A'] == 3 and no exception raised.",
+        "priority": 1,
+        "behavior_id": "reserve-single-deduct",
+        "setup": "Inventory with positive stock for 'A'.",
+        "additional_categories": []
+      },
+      {
+        "category": "normal",
+        "description": "reserve() aggregates repeated SKUs before comparing against stock and deducts the total once.",
+        "target_symbol": "Inventory.reserve",
+        "input_strategy": "stock={'A': 5}; reserve([OrderLine('A', 2), OrderLine('A', 3)]).",
+        "expected_behavior": "Succeeds and snapshot()['A'] == 0 (total 5 aggregated).",
+        "priority": 1,
+        "behavior_id": "reserve-aggregate-same-sku",
+        "setup": "Two lines for the same SKU whose combined quantity exactly equals available stock.",
+        "additional_categories": [
+          "boundary"
+        ]
+      },
+      {
+        "category": "boundary",
+        "description": "A request equal to the available stock is accepted (exclusive over-stock comparison).",
+        "target_symbol": "Inventory.reserve",
+        "input_strategy": "stock={'A': 3}; reserve([OrderLine('A', 3)]).",
+        "expected_behavior": "Succeeds and snapshot()['A'] == 0; the `quantity > stock` guard is exclusive.",
+        "priority": 1,
+        "behavior_id": "reserve-exact-stock",
+        "setup": "Request exactly matches available units.",
+        "additional_categories": []
+      },
+      {
+        "category": "exception",
+        "description": "A request one unit over available stock raises OutOfStockError.",
+        "target_symbol": "Inventory.reserve",
+        "input_strategy": "stock={'A': 3}; reserve([OrderLine('A', 4)]).",
+        "expected_behavior": "Raises OutOfStockError with message 'not enough stock: A'; snapshot()['A'] remains 3.",
+        "priority": 1,
+        "behavior_id": "reserve-over-stock",
+        "setup": "Request exceeds stock by exactly one, the opposite side of the equality boundary.",
+        "additional_categories": []
+      },
+      {
+        "category": "exception",
+        "description": "An empty order line list is rejected before any aggregation or deduction.",
+        "target_symbol": "Inventory.reserve",
+        "input_strategy": "reserve([]) on an inventory with stock.",
+        "expected_behavior": "Raises InvalidOrderError('empty order') and no stock changes.",
+        "priority": 1,
+        "behavior_id": "reserve-empty-lines",
+        "setup": "Empty list input.",
+        "additional_categories": [
+          "invalid"
+        ]
+      },
+      {
+        "category": "exception",
+        "description": "A line referencing an unregistered SKU is surfaced via product() before any deduction.",
+        "target_symbol": "Inventory.reserve",
+        "input_strategy": "stock={'A': 5}; reserve([OrderLine('A', 1), OrderLine('Z', 1)]).",
+        "expected_behavior": "Raises InvalidOrderError mentioning unknown SKU 'Z' and snapshot() is unchanged.",
+        "priority": 1,
+        "behavior_id": "reserve-unknown-sku",
+        "setup": "A valid line followed by an unknown-SKU line; relies on the loop calling self.product per line.",
+        "additional_categories": []
+      },
+      {
+        "category": "interaction",
+        "description": "Validation is all-or-nothing: when a later SKU is out of stock, an earlier valid SKU in the same call is not deducted.",
+        "target_symbol": "Inventory.reserve",
+        "input_strategy": "stock={'A': 2, 'B': 1}; reserve([OrderLine('A', 1), OrderLine('B', 5)]).",
+        "expected_behavior": "Raises OutOfStockError and snapshot() == {'A': 2, 'B': 1}; no partial deduction was committed.",
+        "priority": 1,
+        "behavior_id": "reserve-atomic-rollback",
+        "setup": "Multi-line order where one line passes and another fails validation.",
+        "additional_categories": [
+          "branch"
+        ]
+      },
+      {
+        "category": "interaction",
+        "description": "A successful reserve() then a subsequent snapshot/product call reflects both the deduction and the unchanged product catalog.",
+        "target_symbol": "Inventory.reserve",
+        "input_strategy": "stock={'A': 4, 'B': 4}; reserve([OrderLine('A', 1), OrderLine('B', 2)]); then snapshot() and product('A').",
+        "expected_behavior": "snapshot() == {'A': 3, 'B': 2} and product('A').sku == 'A'.",
+        "priority": 2,
+        "behavior_id": "reserve-multiline-commit",
+        "setup": "Inventory with two stocked SKUs; exercises the final commit loop over multiple requested entries.",
+        "additional_categories": [
+          "normal"
+        ]
+      },
+      {
+        "category": "branch",
+        "description": "Lines whose quantities are individually valid still fail when their aggregated total for one SKU exceeds stock (aggregation precedes the per-SKU stock check).",
+        "target_symbol": "Inventory.reserve",
+        "input_strategy": "stock={'A': 3}; reserve([OrderLine('A', 2), OrderLine('A', 2)]).",
+        "expected_behavior": "Raises OutOfStockError('not enough stock: A') and snapshot()['A'] remains 3.",
+        "priority": 2,
+        "behavior_id": "reserve-aggregate-exceeds",
+        "setup": "Two lines each within stock, but their sum exceeds it; distinguishes the aggregation branch from the exact-fit boundary.",
+        "additional_categories": [
+          "exception"
+        ]
+      }
+    ]
+  },
+  {
+    "target": "models.py",
+    "cases": [
+      {
+        "category": "normal",
+        "description": "Product accepts a valid SKU and a finite nonnegative Decimal price and preserves the given values.",
+        "target_symbol": "models.Product",
+        "input_strategy": "Product(sku='A1', price=Decimal('19.99')); read back sku and price.",
+        "expected_behavior": "Construction succeeds, product.sku == 'A1', product.price == Decimal('19.99'); no exception raised.",
+        "priority": 1,
+        "behavior_id": "product-valid",
+        "setup": "Import Product and Decimal; plain valid values.",
+        "additional_categories": []
+      },
+      {
+        "category": "boundary",
+        "description": "A zero price is a finite nonnegative Decimal and is accepted (exclusive lower bound).",
+        "target_symbol": "models.Product",
+        "input_strategy": "Product(sku='A1', price=Decimal('0')).",
+        "expected_behavior": "Construction succeeds and product.price == Decimal('0').",
+        "priority": 2,
+        "behavior_id": "product-zero-price",
+        "setup": "Boundary side just below the negative rejection.",
+        "additional_categories": []
+      },
+      {
+        "category": "invalid",
+        "description": "Product SKUs that are empty, whitespace-only or non-str are all rejected by the same guard.",
+        "target_symbol": "models.Product",
+        "input_strategy": "parametrize over sku inputs: '', '   ', None, 123; price=Decimal('1').",
+        "expected_behavior": "Each raises InvalidOrderError('SKU must be nonempty').",
+        "priority": 1,
+        "behavior_id": "product-invalid-sku",
+        "setup": "Valid Decimal price so the SKU guard is reached first.",
+        "additional_categories": [
+          "exception"
+        ]
+      },
+      {
+        "category": "invalid",
+        "description": "Product prices that are non-Decimal, non-finite or negative all hit the price guard.",
+        "target_symbol": "models.Product",
+        "input_strategy": "parametrize over price inputs: 1.0 (float), Decimal('NaN'), Decimal('Infinity'), Decimal('-0.01'); sku='A1'.",
+        "expected_behavior": "Each raises InvalidOrderError('price must be a finite nonnegative Decimal').",
+        "priority": 1,
+        "behavior_id": "product-invalid-price",
+        "setup": "Valid nonempty SKU so the price guard branch is exercised after the SKU branch passes.",
+        "additional_categories": [
+          "exception"
+        ]
+      },
+      {
+        "category": "normal",
+        "description": "Product is a frozen dataclass: attempt to assign a new price after construction is rejected.",
+        "target_symbol": "models.Product",
+        "input_strategy": "Build Product('A1', Decimal('1')) then assign product.price = Decimal('2').",
+        "expected_behavior": "Raises dataclasses.FrozenInstanceError and price remains Decimal('1').",
+        "priority": 2,
+        "behavior_id": "product-frozen",
+        "setup": "Valid Product instance used to exercise the frozen=True contract.",
+        "additional_categories": [
+          "exception"
+        ]
+      },
+      {
+        "category": "normal",
+        "description": "Products with the same sku and price compare equal and hash alike because they are dataclasses with eq semantics.",
+        "target_symbol": "models.Product",
+        "input_strategy": "Create two independent Product('A1', Decimal('5')) instances and compare with == and hash().",
+        "expected_behavior": "p1 == p2 and hash(p1) == hash(p2).",
+        "priority": 2,
+        "behavior_id": "product-value-equality",
+        "setup": "Two separately constructed Product instances with identical field values.",
+        "additional_categories": [
+          "interaction"
+        ]
+      },
+      {
+        "category": "normal",
+        "description": "OrderLine accepts a valid SKU and a strictly positive int quantity and preserves the values.",
+        "target_symbol": "models.OrderLine",
+        "input_strategy": "OrderLine(sku='A1', quantity=3); read back sku and quantity.",
+        "expected_behavior": "Construction succeeds, line.sku == 'A1', line.quantity == 3.",
+        "priority": 1,
+        "behavior_id": "orderline-valid",
+        "setup": "Plain valid values.",
+        "additional_categories": []
+      },
+      {
+        "category": "boundary",
+        "description": "Quantity of exactly one is the smallest valid positive integer and is accepted.",
+        "target_symbol": "models.OrderLine",
+        "input_strategy": "OrderLine(sku='A1', quantity=1).",
+        "expected_behavior": "Construction succeeds and line.quantity == 1; the <= 0 guard is exclusive at the low end.",
+        "priority": 1,
+        "behavior_id": "orderline-quantity-one",
+        "setup": "Boundary value just above the zero rejection.",
+        "additional_categories": []
+      },
+      {
+        "category": "invalid",
+        "description": "OrderLine SKUs that are empty, whitespace-only or non-str are rejected by the same guard.",
+        "target_symbol": "models.OrderLine",
+        "input_strategy": "parametrize over sku inputs: '', '\\t', None, 7; quantity=1.",
+        "expected_behavior": "Each raises InvalidOrderError('SKU must be nonempty').",
+        "priority": 1,
+        "behavior_id": "orderline-invalid-sku",
+        "setup": "Valid positive int quantity so the SKU guard is reached first.",
+        "additional_categories": [
+          "exception"
+        ]
+      },
+      {
+        "category": "invalid",
+        "description": "Quantities that are zero, negative, bool, float, str or non-numeric all fail the strictly positive int guard.",
+        "target_symbol": "models.OrderLine",
+        "input_strategy": "parametrize over quantity inputs: 0, -1, True, False, 1.0, '2', None; sku='A1'.",
+        "expected_behavior": "Each raises InvalidOrderError('quantity must be a positive integer'); note True/False are int subclasses but are excluded by the `type(...) is not int` check.",
+        "priority": 1,
+        "behavior_id": "orderline-invalid-quantity",
+        "setup": "Valid nonempty SKU so the quantity guard is reached; bool cases specifically exercise the boolean exclusion in the docstring.",
+        "additional_categories": [
+          "boundary",
+          "exception"
+        ]
+      },
+      {
+        "category": "normal",
+        "description": "OrderLine is frozen: mutation of quantity after construction is rejected.",
+        "target_symbol": "models.OrderLine",
+        "input_strategy": "Build OrderLine('A1', 2) then assign line.quantity = 5.",
+        "expected_behavior": "Raises dataclasses.FrozenInstanceError and quantity remains 2.",
+        "priority": 2,
+        "behavior_id": "orderline-frozen",
+        "setup": "Valid OrderLine instance used to exercise frozen=True.",
+        "additional_categories": [
+          "exception"
+        ]
+      },
+      {
+        "category": "normal",
+        "description": "CustomerLevel enum exposes REGULAR and VIP string values.",
+        "target_symbol": "models.CustomerLevel",
+        "input_strategy": "Read CustomerLevel.REGULAR.value and CustomerLevel.VIP.value.",
+        "expected_behavior": "'regular' and 'vip' respectively, each a member of CustomerLevel.",
+        "priority": 2,
+        "behavior_id": "customerlevel-members",
+        "setup": "Direct class attribute access on the Enum.",
+        "additional_categories": []
+      },
+      {
+        "category": "normal",
+        "description": "CouponType enum exposes FIXED and PERCENT string values and can be looked up by value.",
+        "target_symbol": "models.CouponType",
+        "input_strategy": "Read CouponType.FIXED.value, CouponType.PERCENT.value and CouponType('fixed').",
+        "expected_behavior": "'fixed', 'percent'; CouponType('fixed') is CouponType.FIXED.",
+        "priority": 2,
+        "behavior_id": "coupontype-members",
+        "setup": "Attribute access and value-based lookup on the Enum.",
+        "additional_categories": []
+      },
+      {
+        "category": "exception",
+        "description": "Unknown string is not a valid CouponType value, so lookup raises ValueError.",
+        "target_symbol": "models.CouponType",
+        "input_strategy": "Call CouponType('bogus').",
+        "expected_behavior": "Raises ValueError (Enum value lookup failure), not InvalidOrderError.",
+        "priority": 3,
+        "behavior_id": "coupontype-unknown-value",
+        "setup": "String that matches no member value.",
+        "additional_categories": [
+          "invalid"
+        ]
+      },
+      {
+        "category": "exception",
+        "description": "Product validation errors are domain errors and therefore catchable as ValueError, carrying the expected message.",
+        "target_symbol": "models.Product",
+        "input_strategy": "Wrap Product('A1', Decimal('-1')) construction in try/except ValueError and capture the error.",
+        "expected_behavior": "The caught exception is an InvalidOrderError with str() == 'price must be a finite nonnegative Decimal'.",
+        "priority": 2,
+        "behavior_id": "product-error-is-valueerror",
+        "setup": "Use except ValueError to confirm the OrderError->ValueError hierarchy from errors.py is wired into models.",
+        "additional_categories": [
+          "interaction"
+        ]
+      }
+    ]
+  },
+  {
+    "target": "order_service.py",
+    "cases": [
+      {
+        "category": "normal",
+        "description": "Successful checkout prices the order via quote, then commits the reservation to inventory.",
+        "target_symbol": "OrderService.checkout",
+        "input_strategy": "Inventory with products=[Product('A', Decimal('10'))], stock={'A': 5}; OrderService(inventory, clock=fixed aware clock); checkout([OrderLine('A', 2)], level=CustomerLevel.REGULAR, coupon=None).",
+        "expected_behavior": "Returns Decimal('20.00') and inventory.snapshot() == {'A': 3}; reserve ran after pricing succeeded.",
+        "priority": 1,
+        "behavior_id": "checkout-success-reserves-stock",
+        "setup": "Injected clock returning a fixed timezone-aware datetime so the call is deterministic; single-threaded synchronous service.",
+        "additional_categories": [
+          "normal"
+        ]
+      },
+      {
+        "category": "normal",
+        "description": "A VIP checkout without a coupon applies the 10% membership discount before reserving.",
+        "target_symbol": "OrderService.checkout",
+        "input_strategy": "Inventory stock={'A': 5}, Product('A', Decimal('10')); checkout([OrderLine('A', 2)], level=CustomerLevel.VIP, coupon=None).",
+        "expected_behavior": "Returns Decimal('18.00') (20 * 0.90) and snapshot()['A'] == 3.",
+        "priority": 1,
+        "behavior_id": "checkout-vip-no-coupon",
+        "setup": "Injected fixed aware clock; no coupon supplied so the VIP branch in quote is taken.",
+        "additional_categories": []
+      },
+      {
+        "category": "interaction",
+        "description": "The injected clock is consulted exactly once per checkout attempt and its instant is what coupon expiry is judged against.",
+        "target_symbol": "OrderService.checkout",
+        "input_strategy": "clock = a callable that increments a counter and returns a fixed aware datetime; perform one successful checkout with a coupon valid strictly at that instant.",
+        "expected_behavior": "The clock callable is invoked once during the single checkout call, the coupon is accepted, and reservation commits.",
+        "priority": 2,
+        "behavior_id": "checkout-clock-called-once",
+        "setup": "Counting wrapper around a fixed aware datetime; distinguishes 'clock once per attempt' from repeated or skipped calls.",
+        "additional_categories": [
+          "branch"
+        ]
+      },
+      {
+        "category": "interaction",
+        "description": "When no clock is supplied the default current_time function is used and checkout still succeeds.",
+        "target_symbol": "OrderService.__init__",
+        "input_strategy": "Inventory stock={'A': 2}, Product('A', Decimal('5')); OrderService(inventory, clock=None); checkout([OrderLine('A', 1)], coupon=None).",
+        "expected_behavior": "service.clock is current_time (order_service.current_time) and checkout returns Decimal('5.00') reserving correctly.",
+        "priority": 2,
+        "behavior_id": "init-default-clock",
+        "setup": "None clock so the `clock if clock is not None else current_time` branch is exercised; assert identity with the module-level current_time.",
+        "additional_categories": []
+      },
+      {
+        "category": "interaction",
+        "description": "A supplied clock is stored and used verbatim rather than the default.",
+        "target_symbol": "OrderService.__init__",
+        "input_strategy": "sentinel = lambda: aware_datetime; service = OrderService(inventory, clock=sentinel); read service.clock.",
+        "expected_behavior": "service.clock is sentinel (the provided object), not current_time.",
+        "priority": 2,
+        "behavior_id": "init-injected-clock-stored",
+        "setup": "Distinct callable object to distinguish the injected branch from the default branch.",
+        "additional_categories": []
+      },
+      {
+        "category": "interaction",
+        "description": "When pricing fails because a coupon has expired, the inventory is left completely unchanged.",
+        "target_symbol": "OrderService.checkout",
+        "input_strategy": "Coupon(FIXED, Decimal('5'), Decimal('0'), expires_at=aware T); clock returns aware now == T (expired, exclusive); checkout([OrderLine('A', 2)]).",
+        "expected_behavior": "Raises InvalidCouponError('coupon expired') and inventory.snapshot() == {'A': 5}; reserve was never reached.",
+        "priority": 1,
+        "behavior_id": "checkout-atomic-failure-expired-coupon",
+        "setup": "Injected clock pinned to exactly expires_at to trigger the expiry guard inside Coupon.discount; stock is checked after the raise.",
+        "additional_categories": [
+          "exception"
+        ]
+      },
+      {
+        "category": "exception",
+        "description": "An empty order line list fails pricing/validation before any reservation attempt.",
+        "target_symbol": "OrderService.checkout",
+        "input_strategy": "checkout([], level=CustomerLevel.REGULAR, coupon=None) against a stocked inventory.",
+        "expected_behavior": "Raises InvalidOrderError('empty order') and snapshot() is unchanged.",
+        "priority": 1,
+        "behavior_id": "checkout-empty-lines",
+        "setup": "Empty list input; relies on quote raising before inventory.reserve is called.",
+        "additional_categories": [
+          "invalid"
+        ]
+      },
+      {
+        "category": "invalid",
+        "description": "An unknown customer level passed to checkout is rejected during pricing and stock is preserved.",
+        "target_symbol": "OrderService.checkout",
+        "input_strategy": "checkout([OrderLine('A', 1)], level='vip', coupon=None) with valid stock.",
+        "expected_behavior": "Raises InvalidOrderError('unknown customer level') and snapshot() == {'A': 5}.",
+        "priority": 1,
+        "behavior_id": "checkout-invalid-level",
+        "setup": "Raw string level bypasses the enum guarantee; quote's isinstance(check) raises before reserve.",
+        "additional_categories": [
+          "exception"
+        ]
+      },
+      {
+        "category": "exception",
+        "description": "A line referencing an unknown SKU surfaces as a domain error during pricing and no stock is deducted.",
+        "target_symbol": "OrderService.checkout",
+        "input_strategy": "checkout([OrderLine('MISSING', 1)], coupon=None) on an inventory containing only 'A'.",
+        "expected_behavior": "Raises InvalidOrderError mentioning 'unknown SKU' and snapshot() is unchanged.",
+        "priority": 1,
+        "behavior_id": "checkout-unknown-sku",
+        "setup": "Line SKU never registered; quote resolves products via inventory.product before reserve is called.",
+        "additional_categories": []
+      },
+      {
+        "category": "interaction",
+        "description": "A successful pricing then an out-of-stock reserve leaves stock unchanged despite a valid quote.",
+        "target_symbol": "OrderService.checkout",
+        "input_strategy": "stock={'A': 1}; checkout([OrderLine('A', 2)], coupon=None) with a valid clock.",
+        "expected_behavior": "Raises OutOfStockError('not enough stock: A') and snapshot()['A'] remains 1; quote succeeded but reserve is atomic and rejects.",
+        "priority": 1,
+        "behavior_id": "checkout-reserve-fails-after-quote",
+        "setup": "Requested quantity exceeds stock so the failure moves from pricing into reservation, exercising the post-quote boundary.",
+        "additional_categories": [
+          "exception"
+        ]
+      },
+      {
+        "category": "interaction",
+        "description": "Repeated checkout calls against the same service keep deducting correctly across attempts, reflecting committed state of the previous call.",
+        "target_symbol": "OrderService.checkout",
+        "input_strategy": "stock={'A': 5}; checkout([OrderLine('A', 2)]) then checkout([OrderLine('A', 2)]) with the same injected clock.",
+        "expected_behavior": "First returns Decimal('20.00') with stock 3, second returns Decimal('20.00') with stock 1; no cumulative leakage between calls.",
+        "priority": 3,
+        "behavior_id": "checkout-repeated-calls",
+        "setup": "One long-lived Inventory and service reused across calls to confirm each checkout prices the whole order once and deducts independently.",
+        "additional_categories": []
+      },
+      {
+        "category": "normal",
+        "description": "current_time returns a timezone-aware UTC datetime.",
+        "target_symbol": "order_service.current_time",
+        "input_strategy": "Call current_time() twice in sequence and inspect tzinfo and ordering.",
+        "expected_behavior": "Each returned datetime has utcoffset() == timedelta(0) and the second is not earlier than the first (monotonic non-decreasing wall clock).",
+        "priority": 3,
+        "behavior_id": "current-time-aware-utc",
+        "setup": "Direct call to the module-level default clock; no injection.",
+        "additional_categories": []
+      }
+    ]
+  },
+  {
+    "target": "pricing.py",
+    "cases": [
+      {
+        "category": "normal",
+        "description": "Non-VIP regular customer without a coupon pays the raw subtotal across multiple lines, rounded once to cents.",
+        "target_symbol": "pricing.quote",
+        "input_strategy": "Inventory with products=[Product('A', Decimal('10.005')), Product('B', Decimal('3.33'))] stock={'A':10,'B':10}; lines=[OrderLine('A',2), OrderLine('B',3)]; level=CustomerLevel.REGULAR; coupon=None; now=aware fixed.",
+        "expected_behavior": "Returns Decimal('30.00') ((20.01 + 9.99) = 30.00 exactly; quantized ROUND_HALF_UP), and inventory.snapshot() is unchanged (quote must not reserve).",
+        "priority": 1,
+        "behavior_id": "quote-regular-no-coupon-subtotal",
+        "setup": "Quote does not reserve stock per docstring; assert the snapshot equals the pre-call snapshot to prove no deduction.",
+        "additional_categories": [
+          "interaction"
+        ]
+      },
+      {
+        "category": "normal",
+        "description": "VIP customer without a coupon receives the 10% membership discount.",
+        "target_symbol": "pricing.quote",
+        "input_strategy": "Product('A', Decimal('20')), stock {'A':5}; lines=[OrderLine('A',1)]; level=CustomerLevel.VIP; coupon=None; aware now.",
+        "expected_behavior": "Returns Decimal('18.00') (20 * 0.90 quantized HALF_UP).",
+        "priority": 1,
+        "behavior_id": "quote-vip-no-coupon",
+        "setup": "No coupon so the VIP branch is selected.",
+        "additional_categories": []
+      },
+      {
+        "category": "normal",
+        "description": "Percent coupon replaces the VIP discount: a smaller coupon discount wins over the larger membership discount because coupons always replace.",
+        "target_symbol": "pricing.quote",
+        "input_strategy": "Product('A', Decimal('100')), stock {'A':5}; level=CustomerLevel.VIP; coupon=Coupon(PERCENT, Decimal('0.05'), minimum=Decimal('0'), expires_at=T); now strictly before T.",
+        "expected_behavior": "Returns Decimal('95.00') (100 - 0.05*100) rather than the VIP 90.00; coupon beats membership even when less generous.",
+        "priority": 1,
+        "behavior_id": "quote-coupon-replaces-vip-unfavorable",
+        "setup": "Valid aware timestamps so coupon validates; observe that 95.00 is not 90.00 proves replacement over stacking.",
+        "additional_categories": [
+          "branch"
+        ]
+      },
+      {
+        "category": "normal",
+        "description": "Fixed coupon replaces the membership discount even when it is more generous than 10% for a VIP.",
+        "target_symbol": "pricing.quote",
+        "input_strategy": "Product('A', Decimal('100')), stock {'A':5}; level=CustomerLevel.VIP; coupon=Coupon(FIXED, Decimal('30'), minimum=Decimal('0'), expires_at=T); now strictly before T.",
+        "expected_behavior": "Returns Decimal('70.00') (100 - 30), not 90.00 nor 63.00.",
+        "priority": 1,
+        "behavior_id": "quote-coupon-replaces-vip-favorable",
+        "setup": "Aware timestamps strictly before expiry.",
+        "additional_categories": [
+          "branch"
+        ]
+      },
+      {
+        "category": "boundary",
+        "description": "A fixed coupon larger than the subtotal floors the final charge at zero.",
+        "target_symbol": "pricing.quote",
+        "input_strategy": "Product('A', Decimal('10')), stock {'A':5}; lines=[OrderLine('A',1)]; level=CustomerLevel.REGULAR; coupon=Coupon(FIXED, Decimal('100'), minimum=Decimal('0'), expires_at=T); now before T.",
+        "expected_behavior": "Returns Decimal('0.00') via max(Decimal('0'), total); coupon is not responsible for flooring.",
+        "priority": 1,
+        "behavior_id": "quote-negative-total-floored-zero",
+        "setup": "Fixed discount exceeding subtotal to exercise the max() floor branch.",
+        "additional_categories": []
+      },
+      {
+        "category": "boundary",
+        "description": "A exactly-zero total (discount equals subtotal) is returned as Decimal('0.00').",
+        "target_symbol": "pricing.quote",
+        "input_strategy": "Product('A', Decimal('50')), stock {'A':5}; lines=[OrderLine('A',1)]; coupon=Coupon(FIXED, Decimal('50'), minimum=Decimal('0'), expires_at=T); now before T.",
+        "expected_behavior": "Returns Decimal('0.00'); max(0, 0) is the inclusive floor boundary.",
+        "priority": 2,
+        "behavior_id": "quote-zero-total-boundary",
+        "setup": "Discount exactly equals subtotal so total is zero, the accepted side of the floor.",
+        "additional_categories": []
+      },
+      {
+        "category": "boundary",
+        "description": "Rounding uses ROUND_HALF_UP at the exact half-cent boundary.",
+        "target_symbol": "pricing.quote",
+        "input_strategy": "Product('A', Decimal('10.005')), stock {'A':5}; lines=[OrderLine('A',1)]; level=CustomerLevel.REGULAR; coupon=None.",
+        "expected_behavior": "Returns Decimal('10.01') (10.005 -> HALF_UP rounds up; ROUND_HALF_EVEN would give 10.00), proving the rounding mode.",
+        "priority": 2,
+        "behavior_id": "quote-round-half-up",
+        "setup": "Subtotal exactly halfway between cents.",
+        "additional_categories": []
+      },
+      {
+        "category": "boundary",
+        "description": "Rounding is applied once to the final total after coupon subtraction, not separately to the subtotal or discount.",
+        "target_symbol": "pricing.quote",
+        "input_strategy": "Product('A', Decimal('0.01')), stock {'A':5}; lines=[OrderLine('A',2)] (subtotal 0.02); coupon=Coupon(PERCENT, Decimal('0.5'), minimum=Decimal('0'), expires_at=T); now before T.",
+        "expected_behavior": "Returns Decimal('0.01') (0.02 - 0.01 = 0.01 quantized). Confirms a single quantize on the final amount.",
+        "priority": 2,
+        "behavior_id": "quote-single-rounding-after-discount",
+        "setup": "Small amounts so per-step rounding would produce a different value than final rounding.",
+        "additional_categories": []
+      },
+      {
+        "category": "exception",
+        "description": "An empty lines list is rejected before any price lookup or coupon evaluation.",
+        "target_symbol": "pricing.quote",
+        "input_strategy": "lines=[]; valid inventory, level, coupon=None, aware now.",
+        "expected_behavior": "Raises InvalidOrderError('empty order').",
+        "priority": 1,
+        "behavior_id": "quote-empty-lines",
+        "setup": "Empty list triggers the first guard.",
+        "additional_categories": [
+          "invalid"
+        ]
+      },
+      {
+        "category": "exception",
+        "description": "A non-enum level value is rejected before pricing.",
+        "target_symbol": "pricing.quote",
+        "input_strategy": "lines=[OrderLine('A',1)]; level='vip' (raw string); coupon=None.",
+        "expected_behavior": "Raises InvalidOrderError('unknown customer level') and no coupon/inventory access occurs.",
+        "priority": 1,
+        "behavior_id": "quote-invalid-level",
+        "setup": "Bypass enum typing to exercise the isinstance branch.",
+        "additional_categories": [
+          "invalid"
+        ]
+      },
+      {
+        "category": "exception",
+        "description": "An expired coupon propagates InvalidCouponError and never falls back to VIP pricing.",
+        "target_symbol": "pricing.quote",
+        "input_strategy": "level=CustomerLevel.VIP; coupon=Coupon(FIXED, Decimal('5'), minimum=Decimal('0'), expires_at=T); now == T (expiry exclusive).",
+        "expected_behavior": "Raises InvalidCouponError('coupon expired'); no Decimal result is returned even though VIP pricing would otherwise apply.",
+        "priority": 1,
+        "behavior_id": "quote-expired-coupon-no-fallback",
+        "setup": "now pinned to expires_at exploits the `now >= expires_at` guard; catches the documented 'never silently fall back to VIP' contract.",
+        "additional_categories": []
+      },
+      {
+        "category": "exception",
+        "description": "A coupon failing its minimum-spend threshold propagates InvalidCouponError rather than pricing with VIP.",
+        "target_symbol": "pricing.quote",
+        "input_strategy": "level=CustomerLevel.VIP; Product('A', Decimal('10')), stock {'A':5}; coupon=Coupon(FIXED, Decimal('1'), minimum=Decimal('50'), expires_at=T); now before T.",
+        "expected_behavior": "Raises InvalidCouponError('minimum spend not met'); a VIP would have paid 9.00 without the coupon but must not receive a fallback.",
+        "priority": 1,
+        "behavior_id": "quote-coupon-min-not-met-no-fallback",
+        "setup": "Valid coupon otherwise so the failure is the minimum-spend branch.",
+        "additional_categories": []
+      },
+      {
+        "category": "exception",
+        "description": "An unknown SKU in any line surfaces as InvalidOrderError from the inventory lookup during subtotal accumulation.",
+        "target_symbol": "pricing.quote",
+        "input_strategy": "lines=[OrderLine('A',1), OrderLine('MISSING',1)]; inventory contains only 'A'; coupon=None; level=REGULAR.",
+        "expected_behavior": "Raises InvalidOrderError mentioning 'unknown SKU: MISSING'; the first line's price was read but no result returned.",
+        "priority": 1,
+        "behavior_id": "quote-unknown-sku",
+        "setup": "One valid and one unregistered SKU to confirm the generator calls inventory.product per line.",
+        "additional_categories": []
+      },
+      {
+        "category": "branch",
+        "description": "When coupon is None and level is REGULAR, neither discount branch runs and the raw subtotal is returned.",
+        "target_symbol": "pricing.quote",
+        "input_strategy": "coupon=None; level=CustomerLevel.REGULAR; Product('A', Decimal('7.77')), stock {'A':5}; lines=[OrderLine('A',1)].",
+        "expected_behavior": "Returns Decimal('7.77') unchanged, distinguishing the else branch from the VIP branch; verify by also running the same inventory at VIP and observing 6.99 (7.77 * 0.90 = 6.993 -> 6.99).",
+        "priority": 2,
+        "behavior_id": "quote-branch-regular-vs-vip",
+        "setup": "Same inputs differ only by level to isolate the elif vs else branch.",
+        "additional_categories": [
+          "boundary"
+        ]
+      },
+      {
+        "category": "interaction",
+        "description": "quote() never mutates inventory: stock is invariant after a successful call.",
+        "target_symbol": "pricing.quote",
+        "input_strategy": "stock={'A': 5}; lines=[OrderLine('A', 3)]; coupon=None; record snapshot before and after quote().",
+        "expected_behavior": "snapshot() equals the pre-call snapshot {'A': 5}; quote is a pure read even for large quantities that reserve() would reject.",
+        "priority": 1,
+        "behavior_id": "quote-does-not-reserve",
+        "setup": "Quantity within stock to pass pricing; the assertion is the snapshot equality, not the Decimal result.",
+        "additional_categories": [
+          "normal"
+        ]
+      },
+      {
+        "category": "interaction",
+        "description": "Multiple lines with the same SKU are summed independently by quote (quote does not aggregate), so the subtotal equals price*sum(quantities).",
+        "target_symbol": "pricing.quote",
+        "input_strategy": "Product('A', Decimal('2.50')), stock {'A':100}; lines=[OrderLine('A',2), OrderLine('A',3)]; coupon=None; level=REGULAR.",
+        "expected_behavior": "Returns Decimal('12.50') (2.50 * 5), demonstrating sum over lines rather than per-line quantization.",
+        "priority": 2,
+        "behavior_id": "quote-multiline-subtotal",
+        "setup": "Two lines for the same SKU; pricing does not aggregate or validate stock.",
+        "additional_categories": []
+      },
+      {
+        "category": "invalid",
+        "description": "A non-Decimal coupon value is rejected by the coupon itself and therefore cannot be silently ignored by quote.",
+        "target_symbol": "pricing.quote",
+        "input_strategy": "coupon=Coupon(FIXED, 5.0 (float), minimum=Decimal('0'), expires_at=T); now before T; level=REGULAR.",
+        "expected_behavior": "Raises InvalidCouponError('invalid coupon amount'); quote must not catch or reinterpret it.",
+        "priority": 2,
+        "behavior_id": "quote-invalid-coupon-value-propagates",
+        "setup": "Float value bypasses the coupon dataclass typing to exercise the coupon validation path through quote.",
+        "additional_categories": [
+          "exception"
+        ]
+      }
+    ]
+  }
+]

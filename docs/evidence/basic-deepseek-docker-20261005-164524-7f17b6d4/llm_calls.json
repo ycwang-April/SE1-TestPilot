@@ -1,0 +1,20 @@
+[
+  {
+    "task": "PLAN",
+    "attempt": 1,
+    "model": "deepseek-flash",
+    "max_tokens": 50000,
+    "context_chars": 1604,
+    "status": "completed",
+    "response_chars": 3892
+  },
+  {
+    "task": "GENERATE",
+    "attempt": 1,
+    "model": "deepseek-flash",
+    "max_tokens": 50000,
+    "context_chars": 5529,
+    "status": "completed",
+    "response_chars": 1421
+  }
+]

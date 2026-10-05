@@ -1,0 +1,168 @@
+{
+  "project_path": "D:\\软件工程与项目实践\\hw1\\examples\\edge_cases",
+  "requested_target": null,
+  "repository": {
+    "project_path": "D:\\软件工程与项目实践\\hw1\\examples\\edge_cases",
+    "project_structure": [
+      "shipping.py"
+    ],
+    "source_files": [
+      "shipping.py"
+    ],
+    "existing_tests": [],
+    "dependency_info": {}
+  },
+  "project_index": {
+    "shipping.py": {
+      "path": "shipping.py",
+      "module": "shipping",
+      "docstring": null,
+      "functions": [
+        {
+          "name": "shipping_fee",
+          "signature": "shipping_fee(weight: float, express: bool=False)",
+          "parameters": [
+            "weight",
+            "express"
+          ],
+          "decorators": [],
+          "docstring": "Regular shipping costs 5 up to 1kg, 10 up to 5kg, else 20; express adds 8.",
+          "lineno": 1,
+          "branches": [
+            3,
+            5,
+            11,
+            7
+          ],
+          "is_async": false
+        }
+      ],
+      "classes": [],
+      "imports": [],
+      "internal_dependencies": [],
+      "branches": [
+        3,
+        5,
+        11,
+        7
+      ]
+    }
+  },
+  "target_modules": [
+    "shipping.py"
+  ],
+  "test_plan": [
+    {
+      "target": "shipping.py",
+      "cases": [
+        {
+          "category": "normal",
+          "description": "Demo fixture: normal behavior for shipping.py",
+          "target_symbol": "shipping",
+          "input_strategy": "Use deterministic example inputs",
+          "expected_behavior": "Match the example's documented contract",
+          "priority": 1,
+          "behavior_id": "",
+          "setup": "",
+          "additional_categories": [
+            "boundary",
+            "branch",
+            "exception",
+            "interaction",
+            "invalid"
+          ]
+        }
+      ]
+    }
+  ],
+  "coverage": {
+    "line_coverage": 100.0,
+    "branch_coverage": 100.0,
+    "missing_lines": {
+      "shipping.py": []
+    },
+    "missing_branches": {
+      "shipping.py": []
+    }
+  },
+  "repair_count": 1,
+  "coverage_round": 1,
+  "status": "COMPLETED",
+  "history": [
+    {
+      "step": 1,
+      "action": "ANALYZE",
+      "observation": "ANALYZE: ANALYZING",
+      "repair_count": 0,
+      "coverage_round": 0
+    },
+    {
+      "step": 2,
+      "action": "PLAN",
+      "observation": "PLAN: PLANNING",
+      "repair_count": 0,
+      "coverage_round": 0
+    },
+    {
+      "step": 3,
+      "action": "GENERATE",
+      "observation": "GENERATE: GENERATING",
+      "repair_count": 0,
+      "coverage_round": 0
+    },
+    {
+      "step": 4,
+      "action": "EXECUTE",
+      "observation": "EXECUTE: EXECUTING; rc=1, passed=0, failed=1, errors=0",
+      "repair_count": 0,
+      "coverage_round": 0
+    },
+    {
+      "step": 5,
+      "action": "REPAIR",
+      "observation": "REPAIR: REPAIRING",
+      "repair_count": 1,
+      "coverage_round": 0
+    },
+    {
+      "step": 6,
+      "action": "EXECUTE",
+      "observation": "EXECUTE: EXECUTING; rc=0, passed=1, failed=0, errors=0; line=54.55, branch=37.50",
+      "repair_count": 1,
+      "coverage_round": 0
+    },
+    {
+      "step": 7,
+      "action": "IMPROVE_COVERAGE",
+      "observation": "IMPROVE_COVERAGE: IMPROVING_COVERAGE",
+      "repair_count": 1,
+      "coverage_round": 1
+    },
+    {
+      "step": 8,
+      "action": "EXECUTE",
+      "observation": "EXECUTE: EXECUTING; rc=0, passed=9, failed=0, errors=0; line=100.00, branch=100.00",
+      "repair_count": 1,
+      "coverage_round": 1
+    },
+    {
+      "step": 9,
+      "action": "FINISH",
+      "observation": "FINISH: COMPLETED",
+      "repair_count": 1,
+      "coverage_round": 1
+    }
+  ],
+  "current_action": "FINISH",
+  "error": null,
+  "failure_stage": null,
+  "warnings": [
+    "Plan deduplicated: shipping.py: shipping (boundary)",
+    "Plan deduplicated: shipping.py: shipping (exception)",
+    "Plan deduplicated: shipping.py: shipping (invalid)",
+    "Plan deduplicated: shipping.py: shipping (branch)",
+    "Plan deduplicated: shipping.py: shipping (interaction)"
+  ],
+  "run_dir": "D:\\软件工程与项目实践\\hw1\\runs\\edge_cases-demo-docker-20261005-164006-a2cf37bb",
+  "demo": true
+}

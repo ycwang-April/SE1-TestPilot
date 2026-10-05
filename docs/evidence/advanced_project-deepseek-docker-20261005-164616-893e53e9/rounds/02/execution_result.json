@@ -1,0 +1,15 @@
+{
+  "returncode": 0,
+  "stdout": "........................................................................ [ 66%]\n....................................                                     [100%]\n================================ tests coverage ================================\n_______________ coverage: platform linux, python 3.13.16-final-0 _______________\n\nCoverage JSON written to file .testpilot/coverage.json\n108 passed in 0.72s\n",
+  "stderr": "",
+  "traceback": "",
+  "backend": "docker",
+  "timed_out": false,
+  "passed": 108,
+  "failed": 0,
+  "errors": 0,
+  "skipped": 0,
+  "collected_test_cases": 108,
+  "duration_seconds": 1.2887635999941267,
+  "warnings": []
+}

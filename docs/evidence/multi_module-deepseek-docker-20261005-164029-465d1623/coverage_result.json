@@ -1,0 +1,14 @@
+{
+  "line_coverage": 100.0,
+  "branch_coverage": 100.0,
+  "missing_lines": {
+    "discount.py": [],
+    "models.py": [],
+    "order.py": []
+  },
+  "missing_branches": {
+    "discount.py": [],
+    "models.py": [],
+    "order.py": []
+  }
+}

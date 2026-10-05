@@ -1,0 +1,10 @@
+[
+  {
+    "path": "test_shipping.py",
+    "content": "from shipping import shipping_fee\n\ndef test_regular_small():\n    assert shipping_fee(1) == 5\n"
+  },
+  {
+    "path": "test_shipping_extra.py",
+    "content": "import pytest\nfrom shipping import shipping_fee\n\n@pytest.mark.parametrize(\"weight,express,expected\", [(0.1, False, 5), (1, True, 13), (1.01, False, 10), (5, True, 18), (5.01, False, 20), (10, True, 28)])\ndef test_other_paths(weight, express, expected):\n    assert shipping_fee(weight, express) == expected\n\n@pytest.mark.parametrize(\"weight\", [0, -1])\ndef test_invalid_weight(weight):\n    with pytest.raises(ValueError, match=\"positive\"):\n        shipping_fee(weight)\n"
+  }
+]

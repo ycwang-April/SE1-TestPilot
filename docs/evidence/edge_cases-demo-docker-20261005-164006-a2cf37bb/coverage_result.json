@@ -1,0 +1,10 @@
+{
+  "line_coverage": 100.0,
+  "branch_coverage": 100.0,
+  "missing_lines": {
+    "shipping.py": []
+  },
+  "missing_branches": {
+    "shipping.py": []
+  }
+}

@@ -1,0 +1,15 @@
+{
+  "returncode": 1,
+  "stdout": "F                                                                        [100%]\n=================================== FAILURES ===================================\n______________________________ test_regular_small ______________________________\n\n    def test_regular_small():\n>       assert shipping_fee(1) == 99\nE       assert 5 == 99\nE        +  where 5 = shipping_fee(1)\n\n.testpilot/generated_tests/test_shipping.py:4: AssertionError\n================================ tests coverage ================================\n_______________ coverage: platform linux, python 3.13.16-final-0 _______________\n\nCoverage JSON written to file .testpilot/coverage.json\n=========================== short test summary info ============================\nFAILED .testpilot/generated_tests/test_shipping.py::test_regular_small - asse...\n1 failed in 0.36s\n",
+  "stderr": "",
+  "traceback": "F                                                                        [100%]\n=================================== FAILURES ===================================\n______________________________ test_regular_small ______________________________\n\n    def test_regular_small():\n>       assert shipping_fee(1) == 99\nE       assert 5 == 99\nE        +  where 5 = shipping_fee(1)\n\n.testpilot/generated_tests/test_shipping.py:4: AssertionError\n================================ tests coverage ================================\n_______________ coverage: platform linux, python 3.13.16-final-0 _______________\n\nCoverage JSON written to file .testpilot/coverage.json\n=========================== short test summary info ============================\nFAILED .testpilot/generated_tests/test_shipping.py::test_regular_small - asse...\n1 failed in 0.36s\n\n",
+  "backend": "docker",
+  "timed_out": false,
+  "passed": 0,
+  "failed": 1,
+  "errors": 0,
+  "skipped": 0,
+  "collected_test_cases": 1,
+  "duration_seconds": 1.2034409000043524,
+  "warnings": []
+}

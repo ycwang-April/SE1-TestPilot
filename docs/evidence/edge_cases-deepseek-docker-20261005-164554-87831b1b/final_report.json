@@ -1,0 +1,49 @@
+{
+  "project": "edge_cases",
+  "status": "COMPLETED",
+  "demo": false,
+  "modules": 1,
+  "functions": 1,
+  "classes": 0,
+  "targets": [
+    "shipping.py"
+  ],
+  "generated_tests": 8,
+  "generated_test_functions": 8,
+  "collected_test_cases": 23,
+  "passed": 23,
+  "failed": 0,
+  "errors": 0,
+  "skipped": 0,
+  "initial_passed": 23,
+  "initial_failed": 0,
+  "initial_errors": 0,
+  "final_passed": 23,
+  "final_failed": 0,
+  "final_errors": 0,
+  "repair_rounds": 0,
+  "coverage_rounds": 0,
+  "coverage": {
+    "line_coverage": 100.0,
+    "branch_coverage": 100.0,
+    "missing_lines": {
+      "shipping.py": []
+    },
+    "missing_branches": {
+      "shipping.py": []
+    }
+  },
+  "execution_backend": "docker",
+  "error": null,
+  "failure_stage": null,
+  "warnings": [],
+  "generated_test_paths": [
+    "generated_tests/test_shipping.py"
+  ],
+  "limitations": [
+    "高覆盖率不等于高测试质量；断言仍需人工复核",
+    "LocalRunner 不提供宿主隔离",
+    "只运行新生成的测试；已有测试被识别但不合并执行",
+    "上下文和复制大小有限制，超限应使用 --target"
+  ]
+}

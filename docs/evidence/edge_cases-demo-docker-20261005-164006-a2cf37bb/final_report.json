@@ -1,0 +1,56 @@
+{
+  "project": "edge_cases",
+  "status": "COMPLETED",
+  "demo": true,
+  "modules": 1,
+  "functions": 1,
+  "classes": 0,
+  "targets": [
+    "shipping.py"
+  ],
+  "generated_tests": 3,
+  "generated_test_functions": 3,
+  "collected_test_cases": 9,
+  "passed": 9,
+  "failed": 0,
+  "errors": 0,
+  "skipped": 0,
+  "initial_passed": 0,
+  "initial_failed": 1,
+  "initial_errors": 0,
+  "final_passed": 9,
+  "final_failed": 0,
+  "final_errors": 0,
+  "repair_rounds": 1,
+  "coverage_rounds": 1,
+  "coverage": {
+    "line_coverage": 100.0,
+    "branch_coverage": 100.0,
+    "missing_lines": {
+      "shipping.py": []
+    },
+    "missing_branches": {
+      "shipping.py": []
+    }
+  },
+  "execution_backend": "docker",
+  "error": null,
+  "failure_stage": null,
+  "warnings": [
+    "Plan deduplicated: shipping.py: shipping (boundary)",
+    "Plan deduplicated: shipping.py: shipping (exception)",
+    "Plan deduplicated: shipping.py: shipping (invalid)",
+    "Plan deduplicated: shipping.py: shipping (branch)",
+    "Plan deduplicated: shipping.py: shipping (interaction)"
+  ],
+  "generated_test_paths": [
+    "generated_tests/test_shipping.py",
+    "generated_tests/test_shipping_extra.py"
+  ],
+  "limitations": [
+    "高覆盖率不等于高测试质量；断言仍需人工复核",
+    "LocalRunner 不提供宿主隔离",
+    "只运行新生成的测试；已有测试被识别但不合并执行",
+    "上下文和复制大小有限制，超限应使用 --target"
+  ]
+}

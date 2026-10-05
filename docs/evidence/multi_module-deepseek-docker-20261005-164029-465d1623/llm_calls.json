@@ -1,0 +1,56 @@
+[
+  {
+    "task": "PLAN",
+    "attempt": 1,
+    "model": "deepseek-flash",
+    "max_tokens": 50000,
+    "context_chars": 1055,
+    "status": "completed",
+    "response_chars": 4055
+  },
+  {
+    "task": "PLAN",
+    "attempt": 1,
+    "model": "deepseek-flash",
+    "max_tokens": 50000,
+    "context_chars": 5257,
+    "status": "completed",
+    "response_chars": 4014
+  },
+  {
+    "task": "PLAN",
+    "attempt": 1,
+    "model": "deepseek-flash",
+    "max_tokens": 50000,
+    "context_chars": 11098,
+    "status": "completed",
+    "response_chars": 8652
+  },
+  {
+    "task": "GENERATE",
+    "attempt": 1,
+    "model": "deepseek-flash",
+    "max_tokens": 50000,
+    "context_chars": 18175,
+    "status": "completed",
+    "response_chars": 1605
+  },
+  {
+    "task": "GENERATE",
+    "attempt": 1,
+    "model": "deepseek-flash",
+    "max_tokens": 50000,
+    "context_chars": 19790,
+    "status": "completed",
+    "response_chars": 1746
+  },
+  {
+    "task": "GENERATE",
+    "attempt": 1,
+    "model": "deepseek-flash",
+    "max_tokens": 50000,
+    "context_chars": 23118,
+    "status": "completed",
+    "response_chars": 3350
+  }
+]

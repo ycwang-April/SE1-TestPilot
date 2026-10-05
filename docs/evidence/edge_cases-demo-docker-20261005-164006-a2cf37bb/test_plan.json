@@ -1,0 +1,24 @@
+[
+  {
+    "target": "shipping.py",
+    "cases": [
+      {
+        "category": "normal",
+        "description": "Demo fixture: normal behavior for shipping.py",
+        "target_symbol": "shipping",
+        "input_strategy": "Use deterministic example inputs",
+        "expected_behavior": "Match the example's documented contract",
+        "priority": 1,
+        "behavior_id": "",
+        "setup": "",
+        "additional_categories": [
+          "boundary",
+          "branch",
+          "exception",
+          "interaction",
+          "invalid"
+        ]
+      }
+    ]
+  }
+]

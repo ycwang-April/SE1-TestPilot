@@ -1,0 +1,325 @@
+[
+  {
+    "target": "discount.py",
+    "cases": [
+      {
+        "category": "normal",
+        "description": "Member with a non-negative total below the 100 threshold receives the member rate, since the member branch takes precedence over the total-based branch.",
+        "target_symbol": "discount.discount_rate",
+        "input_strategy": "Parametrize total values below 100 (e.g. 0, 50, 99.99) with member=True.",
+        "expected_behavior": "Returns 0.2 for every member order regardless of total magnitude.",
+        "priority": 1,
+        "behavior_id": "member-rate-precedence",
+        "setup": "Import discount_rate from discount.",
+        "additional_categories": []
+      },
+      {
+        "category": "normal",
+        "description": "Non-member order with total at or above 100 receives the 10% volume discount.",
+        "target_symbol": "discount.discount_rate",
+        "input_strategy": "Parametrize total values at/above 100 (e.g. 100, 250, 1000) with member=False.",
+        "expected_behavior": "Returns 0.1 for each qualifying non-member total.",
+        "priority": 1,
+        "behavior_id": "nonmember-volume-discount",
+        "setup": "Import discount_rate from discount.",
+        "additional_categories": []
+      },
+      {
+        "category": "normal",
+        "description": "Non-member order below 100 receives no discount.",
+        "target_symbol": "discount.discount_rate",
+        "input_strategy": "Parametrize non-negative totals strictly below 100 (e.g. 0, 1, 99) with member=False.",
+        "expected_behavior": "Returns 0.0 for each sub-threshold non-member total.",
+        "priority": 1,
+        "behavior_id": "nonmember-no-discount",
+        "setup": "Import discount_rate from discount.",
+        "additional_categories": []
+      },
+      {
+        "category": "boundary",
+        "description": "Exact threshold total of 100 for a non-member hits the inclusive >= 100 branch and yields the 10% rate, while 99 just below yields 0.0.",
+        "target_symbol": "discount.discount_rate",
+        "input_strategy": "Call with total=100 and total=99, member=False.",
+        "expected_behavior": "100 returns 0.1; 99 returns 0.0, confirming the inclusive boundary.",
+        "priority": 1,
+        "behavior_id": "threshold-boundary-inclusive",
+        "setup": "Import discount_rate from discount.",
+        "additional_categories": []
+      },
+      {
+        "category": "boundary",
+        "description": "Total of 0 is the lowest valid non-negative total and is accepted without error.",
+        "target_symbol": "discount.discount_rate",
+        "input_strategy": "Call with total=0, member=False and member=True.",
+        "expected_behavior": "Non-member returns 0.0; member returns 0.2; no ValueError raised.",
+        "priority": 2,
+        "behavior_id": "zero-total-valid",
+        "setup": "Import discount_rate from discount.",
+        "additional_categories": []
+      },
+      {
+        "category": "exception",
+        "description": "A negative total is rejected with ValueError before any discount branching occurs, even for members.",
+        "target_symbol": "discount.discount_rate",
+        "input_strategy": "Call with negative totals (e.g. -0.01, -1, -100) and both member=False and member=True.",
+        "expected_behavior": "Raises ValueError with message 'negative total' regardless of the member flag.",
+        "priority": 1,
+        "behavior_id": "negative-total-rejected",
+        "setup": "Import pytest and discount_rate from discount; use pytest.raises(ValueError, match='negative total').",
+        "additional_categories": []
+      },
+      {
+        "category": "branch",
+        "description": "Member flag takes priority over the total>=100 branch, so a member order of 100 still yields the 20% member rate rather than 10%.",
+        "target_symbol": "discount.discount_rate",
+        "input_strategy": "Call with total=100 and above (e.g. 100, 500) with member=True.",
+        "expected_behavior": "Returns 0.2, demonstrating member precedence over the volume discount branch.",
+        "priority": 1,
+        "behavior_id": "member-precedence-over-volume",
+        "setup": "Import discount_rate from discount.",
+        "additional_categories": []
+      },
+      {
+        "category": "invalid",
+        "description": "Non-numeric totals cause a TypeError when compared to 0, documenting the unvalidated type contract.",
+        "target_symbol": "discount.discount_rate",
+        "input_strategy": "Call with total=None and total='abc' and total=[], member defaulting to False.",
+        "expected_behavior": "Raises TypeError because the < 0 comparison is unsupported for these types.",
+        "priority": 3,
+        "behavior_id": "non-numeric-total-type-error",
+        "setup": "Import pytest and discount_rate from discount; use pytest.raises(TypeError).",
+        "additional_categories": []
+      }
+    ]
+  },
+  {
+    "target": "models.py",
+    "cases": [
+      {
+        "category": "normal",
+        "description": "Item.subtotal multiplies price by quantity for a typical positive-price, positive-quantity item.",
+        "target_symbol": "models.Item.subtotal",
+        "input_strategy": "Parametrize representative (price, quantity) pairs with price > 0 and quantity > 1, e.g. (2.5, 4), (10.0, 3), (0.99, 100).",
+        "expected_behavior": "Returns price * quantity exactly as a float for each pair.",
+        "priority": 1,
+        "behavior_id": "subtotal-positive-price-quantity",
+        "setup": "Import Item from models; construct Item(price=..., quantity=...) and call subtotal().",
+        "additional_categories": []
+      },
+      {
+        "category": "normal",
+        "description": "Default quantity of 1 makes subtotal equal the price when quantity is omitted, covering the dataclass default.",
+        "target_symbol": "models.Item.subtotal",
+        "input_strategy": "Construct Item(price=7.25) with quantity omitted; also compare with Item(price=7.25, quantity=1).",
+        "expected_behavior": "Both instances return 7.25, confirming the default quantity is 1.",
+        "priority": 2,
+        "behavior_id": "subtotal-default-quantity",
+        "setup": "Import Item from models; do not pass quantity.",
+        "additional_categories": []
+      },
+      {
+        "category": "boundary",
+        "description": "Zero price or zero quantity yields a zero subtotal and must not raise, since the guard checks strict negativity.",
+        "target_symbol": "models.Item.subtotal",
+        "input_strategy": "Call with (price=0, quantity=5) and (price=10, quantity=0) and (price=0, quantity=0).",
+        "expected_behavior": "Returns 0.0 for each case with no ValueError.",
+        "priority": 1,
+        "behavior_id": "subtotal-zero-boundary",
+        "setup": "Import Item from models; construct each instance and invoke subtotal().",
+        "additional_categories": []
+      },
+      {
+        "category": "boundary",
+        "description": "A negative price is rejected even when quantity is positive, testing the guard's price branch independently.",
+        "target_symbol": "models.Item.subtotal",
+        "input_strategy": "Call with negative prices (e.g. -0.01, -5.0) and positive quantity 2.",
+        "expected_behavior": "Raises ValueError with message containing 'negative price or quantity'.",
+        "priority": 1,
+        "behavior_id": "negative-price-rejected",
+        "setup": "Import pytest and Item from models; wrap in pytest.raises(ValueError, match='negative price or quantity').",
+        "additional_categories": []
+      },
+      {
+        "category": "boundary",
+        "description": "A negative quantity is rejected even when price is non-negative, testing the guard's quantity branch independently.",
+        "target_symbol": "models.Item.subtotal",
+        "input_strategy": "Call with positive price 10.0 and negative quantities (e.g. -1, -100) including zero price with negative quantity.",
+        "expected_behavior": "Raises ValueError with message containing 'negative price or quantity' for every combination.",
+        "priority": 1,
+        "behavior_id": "negative-quantity-rejected",
+        "setup": "Import pytest and Item from models; wrap in pytest.raises(ValueError, match='negative price or quantity').",
+        "additional_categories": []
+      },
+      {
+        "category": "branch",
+        "description": "Both fields negative also raises the same ValueError before multiplication, confirming the combined guard short-circuits.",
+        "target_symbol": "models.Item.subtotal",
+        "input_strategy": "Call with price=-3.0 and quantity=-2.",
+        "expected_behavior": "Raises ValueError rather than returning a positive product of two negatives.",
+        "priority": 2,
+        "behavior_id": "both-negative-rejected",
+        "setup": "Import pytest and Item from models; use pytest.raises(ValueError, match='negative price or quantity').",
+        "additional_categories": []
+      },
+      {
+        "category": "invalid",
+        "description": "Non-numeric price or quantity causes a TypeError from the comparison, documenting the unvalidated type contract.",
+        "target_symbol": "models.Item.subtotal",
+        "input_strategy": "Parametrize invalid operands: price=None with quantity=1; price='abc' with quantity=1; price=1.0 with quantity='x'.",
+        "expected_behavior": "Raises TypeError from the '<' comparison for each invalid operand.",
+        "priority": 3,
+        "behavior_id": "non-numeric-operand-type-error",
+        "setup": "Import pytest and Item from models; wrap in pytest.raises(TypeError).",
+        "additional_categories": []
+      }
+    ]
+  },
+  {
+    "target": "order.py",
+    "cases": [
+      {
+        "category": "normal",
+        "description": "An empty item list sums to 0, which is a valid non-negative total below the 100 threshold, so no discount applies and the function returns 0.0.",
+        "target_symbol": "order.order_total",
+        "input_strategy": "Call order_total([]) with member defaulting to False.",
+        "expected_behavior": "Returns 0.0 (0 * 1.0 rounded to two decimals).",
+        "priority": 1,
+        "behavior_id": "empty-items-zero-total",
+        "setup": "Import order_total from order.",
+        "additional_categories": []
+      },
+      {
+        "category": "normal",
+        "description": "Non-member order whose summed subtotals stay below 100 gets no discount, exercising the aggregate sum plus the no-discount rate path.",
+        "target_symbol": "order.order_total",
+        "input_strategy": "Parametrize item sets whose summed price*quantity is strictly below 100, e.g. [Item(10.0, 2)] (20), [Item(2.5, 4), Item(10.0, 3)] (40), [Item(0.99, 100)] (99).",
+        "expected_behavior": "Returns the raw summed total unchanged for each below-threshold non-member order.",
+        "priority": 1,
+        "behavior_id": "nonmember-below-threshold-no-discount",
+        "setup": "Import Item from models and order_total from order; construct each item list and call order_total(items, member=False).",
+        "additional_categories": []
+      },
+      {
+        "category": "normal",
+        "description": "Non-member order with summed subtotal at or above 100 receives the 10% volume discount applied to the sum before rounding.",
+        "target_symbol": "order.order_total",
+        "input_strategy": "Parametrize item sets summing to >=100, e.g. [Item(50.0, 2)] (100), [Item(25.5, 4)] (102), [Item(100.0, 10)] (1000), with member=False.",
+        "expected_behavior": "Returns sum * 0.9 rounded to two decimals (e.g. 100 -> 90.0, 102 -> 91.8).",
+        "priority": 1,
+        "behavior_id": "nonmember-volume-discount-applied",
+        "setup": "Import Item from models and order_total from order; construct each item list and call order_total(items, member=False).",
+        "additional_categories": []
+      },
+      {
+        "category": "normal",
+        "description": "Member order receives the 20% member discount regardless of the summed total, including totals below the volume threshold.",
+        "target_symbol": "order.order_total",
+        "input_strategy": "Parametrize member item sets with various sums, e.g. [Item(10.0, 2)] (20), [Item(2.5, 4)] (10), [Item(60.0, 1)] (60), calling order_total(items, member=True).",
+        "expected_behavior": "Returns sum * 0.8 rounded to two decimals (e.g. 20 -> 16.0, 10 -> 8.0).",
+        "priority": 1,
+        "behavior_id": "member-discount-applied",
+        "setup": "Import Item from models and order_total from order; construct each item list and call order_total(items, member=True).",
+        "additional_categories": []
+      },
+      {
+        "category": "boundary",
+        "description": "Exact threshold sum of 100 for a non-member hits the inclusive >= 100 volume branch and yields the 10% discount, while a sum just below yields none.",
+        "target_symbol": "order.order_total",
+        "input_strategy": "Call with [Item(50.0, 2)] (sum exactly 100) and [Item(49.99, 2)] (sum 99.98), member=False.",
+        "expected_behavior": "Sum 100 returns 90.0; sum 99.98 returns 99.98, confirming the inclusive boundary on the aggregated total.",
+        "priority": 1,
+        "behavior_id": "threshold-boundary-inclusive-aggregate",
+        "setup": "Import Item from models and order_total from order; build each list and invoke order_total with member=False.",
+        "additional_categories": []
+      },
+      {
+        "category": "boundary",
+        "description": "Member flag takes precedence over the volume branch, so a member order with summed total >= 100 still receives the 20% member rate, not 10%.",
+        "target_symbol": "order.order_total",
+        "input_strategy": "Call with item lists summing to >=100, e.g. [Item(50.0, 2)] (100) and [Item(100.0, 10)] (1000), member=True.",
+        "expected_behavior": "Returns sum * 0.8 (100 -> 80.0, 1000 -> 800.0), demonstrating member precedence over the volume discount.",
+        "priority": 1,
+        "behavior_id": "member-precedence-over-volume-aggregate",
+        "setup": "Import Item from models and order_total from order; call order_total(items, member=True).",
+        "additional_categories": []
+      },
+      {
+        "category": "boundary",
+        "description": "Result rounding to two decimals is applied to the discounted product, covering values where the raw product has more than two decimal places.",
+        "target_symbol": "order.order_total",
+        "input_strategy": "Call with [Item(12.345, 1)] (sum 12.345, non-member) and [Item(12.345, 1)] with member=True.",
+        "expected_behavior": "Non-member returns round(12.345, 2) == 12.35 (or the exact value from round's banker's rounding) and member returns round(9.876, 2) == 9.88, matching round(total * (1 - rate), 2).",
+        "priority": 2,
+        "behavior_id": "discounted-result-rounded",
+        "setup": "Import Item from models and order_total from order; construct the item and call with member False and True.",
+        "additional_categories": []
+      },
+      {
+        "category": "exception",
+        "description": "Item.subtotal rejects negative price/quantity, so order_total propagates ValueError from the sum generator before any discount or rounding.",
+        "target_symbol": "order.order_total",
+        "input_strategy": "Call with [Item(-1.0, 1)] and [Item(10.0, -2)] and [Item(5.0, 1), Item(-3.0, 2)], member=False.",
+        "expected_behavior": "Raises ValueError with message containing 'negative price or quantity' for each list.",
+        "priority": 1,
+        "behavior_id": "item-error-propagation",
+        "setup": "Import pytest, Item from models, and order_total from order; wrap in pytest.raises(ValueError, match='negative price or quantity').",
+        "additional_categories": []
+      },
+      {
+        "category": "exception",
+        "description": "When the aggregated total would be negative the discount dependency rejects it, documenting propagation of discount_rate's ValueError through order_total.",
+        "target_symbol": "order.order_total",
+        "input_strategy": "This cannot be reached through valid Items (their guard forbids negative subtotals); verify the float aggregation path instead by using a duck-typed item whose subtotal returns a negative float, e.g. a stub with subtotal() -> -5.0.",
+        "expected_behavior": "order_total raises ValueError('negative total') propagated from discount_rate for the negative aggregate.",
+        "priority": 3,
+        "behavior_id": "negative-aggregate-propagation",
+        "setup": "Import pytest, order_total from order; pass a list containing a stub object exposing subtotal() returning -5.0 (duck-typed like Item) and wrap in pytest.raises(ValueError, match='negative total').",
+        "additional_categories": []
+      },
+      {
+        "category": "invalid",
+        "description": "None or a non-iterable passed as items makes the sum() call fail before any discount logic runs.",
+        "target_symbol": "order.order_total",
+        "input_strategy": "Call order_total(None) and order_total(42) with member defaulting to False.",
+        "expected_behavior": "Raises TypeError because None and int are not iterable for sum().",
+        "priority": 3,
+        "behavior_id": "invalid-items-type-error",
+        "setup": "Import pytest and order_total from order; wrap in pytest.raises(TypeError).",
+        "additional_categories": []
+      },
+      {
+        "category": "invalid",
+        "description": "A list containing a non-Item lacking a callable subtotal attribute causes an AttributeError during aggregation.",
+        "target_symbol": "order.order_total",
+        "input_strategy": "Call order_total([object()]) and order_total([1, 2]) with member defaulting to False.",
+        "expected_behavior": "Raises AttributeError because the objects expose no subtotal() method.",
+        "priority": 3,
+        "behavior_id": "invalid-item-element-attribute-error",
+        "setup": "Import pytest and order_total from order; wrap in pytest.raises(AttributeError).",
+        "additional_categories": []
+      },
+      {
+        "category": "interaction",
+        "description": "order_total delegates the discount-decision total to discount.discount_rate, so the aggregated sum (not individual item prices) is what crosses the 100 threshold.",
+        "target_symbol": "order.order_total",
+        "input_strategy": "Call with [Item(40.0, 1), Item(40.0, 1), Item(20.0, 1)] (three items each below 100, summed exactly 100), member=False.",
+        "expected_behavior": "Returns 90.0, showing the volume discount keys off the summed total rather than any single item subtotal.",
+        "priority": 2,
+        "behavior_id": "aggregate-drives-discount-threshold",
+        "setup": "Import Item from models and order_total from order; call order_total(items, member=False).",
+        "additional_categories": []
+      },
+      {
+        "category": "interaction",
+        "description": "The member flag is passed straight through to discount_rate, so order_total's member argument must reach the discount dependency unchanged.",
+        "target_symbol": "order.order_total",
+        "input_strategy": "Call the same list [Item(10.0, 1)] with member=False and member=True and compare results.",
+        "expected_behavior": "Non-member returns 10.0 and member returns 8.0, revealing that the member argument is forwarded to the discount computation.",
+        "priority": 1,
+        "behavior_id": "member-flag-forwarded",
+        "setup": "Import Item from models and order_total from order; invoke both flag values.",
+        "additional_categories": []
+      }
+    ]
+  }
+]
