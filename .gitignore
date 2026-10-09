@@ -14,4 +14,4 @@ build/
 dist/
 runs/
 .streamlit/secrets.toml
-.vscode/
+.vscode/Sample_video.mp4
