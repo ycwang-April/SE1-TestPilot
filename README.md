@@ -8,6 +8,10 @@ TestPilot 是面向中小型 Python 项目的 **project-aware Test Generation Ag
 
 它是 **Stateful Tool-Using Agent with Feedback Loops**：保存运行状态、调用工具，并根据观察重新决策，超出简单的“源码 → LLM → pytest”生成流程。技术细节见 [Design.md](Design.md)。
 
+## Demo Video
+
+[▶ 查看 TestPilot 演示视频](TestPilot_Demo.mp4)
+
 ## 2. Core Features
 
 - 递归扫描项目，AST 提取函数、类、签名和直接内部依赖。
